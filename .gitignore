@@ -1,0 +1,21 @@
+# Python & environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+ENV/
+
+# Large datasets (>100MB exceeds GitHub push limits)
+data/
+dataset/raw/combined2_dataset.csv.zip
+dataset/raw/
+
+# Jupyter checkpoint
+.ipynb_checkpoints/
+
+# OS specific
+.DS_Store
+Thumbs.db
