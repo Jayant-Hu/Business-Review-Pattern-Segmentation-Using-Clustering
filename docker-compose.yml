@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  urbanpulse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: urbanpulse_app
+    ports:
+      - "8501:8501"
+    environment:
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - ENVIRONMENT=production
+    restart: unless-stopped
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs

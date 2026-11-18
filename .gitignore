@@ -1,21 +1,28 @@
-# Python & environment
+# Python & virtualenv
 __pycache__/
 *.py[cod]
 *$py.class
 *.env
+.env
 .venv/
 env/
 venv/
 ENV/
 
-# Large datasets (>100MB exceeds GitHub push limits)
+# Large datasets & raw data (>100MB exceeds GitHub limits)
 data/
 dataset/raw/combined2_dataset.csv.zip
-dataset/raw/
+dataset/raw/*.csv
 
-# Jupyter checkpoint
+# Geocode cache & persistent local logs
+logs/
+data/geo_cache/
+
+# Streamlit secrets & local configurations
+.streamlit/secrets.toml
+
+# Jupyter & testing
 .ipynb_checkpoints/
-
-# OS specific
-.DS_Store
-Thumbs.db
+.pytest_cache/
+.coverage
+htmlcov/

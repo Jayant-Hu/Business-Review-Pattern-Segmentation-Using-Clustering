@@ -1,5 +1,5 @@
-cluster,avg_rating,rating_std,sample_review_count,positive_review_pct,negative_review_pct,avg_review_length,detailed_review_pct,service_feedback_rate,food_feedback_rate,atmosphere_feedback_rate,cluster_name,business_count
-0,4.57,0.04,3.25,98.86,0.1,125.09,98.69,0.6,0.2,0.15,High-Satisfaction Top Tier,1836
-1,4.33,0.01,2.58,80.67,0.0,0.16,0.47,0.31,0.1,0.1,Moderate / Mixed Feedback,487
-2,3.81,0.05,1.71,64.33,14.65,119.73,66.68,96.94,96.3,88.66,High-Engagement Detailed Feedback,157
-3,2.33,0.07,3.12,1.84,45.63,137.33,90.72,0.7,1.08,0.17,Critical Intervention / At-Risk,796
+cluster,avg_rating,rating_std,sample_review_count,positive_review_pct,negative_review_pct,avg_review_length,detailed_review_pct,service_feedback_rate,food_feedback_rate,atmosphere_feedback_rate,business_count,cluster_name
+0,4.56,0.05,3.26,98.57,0.14,125.66,98.5,0.61,0.21,0.16,1847,High-Satisfaction Top Tier
+1,4.33,0.01,2.57,80.66,0.0,0.13,0.32,0.31,0.1,0.1,485,Moderate / Mixed Feedback
+2,3.81,0.05,1.71,64.33,14.65,120.74,66.68,96.94,96.3,88.66,157,High-Engagement Detailed Feedback
+3,2.32,0.06,3.09,1.37,46.05,138.85,90.93,0.68,1.06,0.14,787,Critical Intervention / At-Risk
