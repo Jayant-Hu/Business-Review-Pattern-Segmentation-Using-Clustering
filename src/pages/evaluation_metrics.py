@@ -34,7 +34,7 @@ def render(data_bundle):
         )
         fig_stab.update_layout(**PLOTLY_DARK_THEME)
         fig_stab.update_layout(coloraxis_showscale=False)
-        st.plotly_chart(fig_stab, width="100%")
+        st.plotly_chart(fig_stab, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c2:
@@ -48,7 +48,7 @@ def render(data_bundle):
         )
         fig_db.update_layout(**PLOTLY_DARK_THEME)
         fig_db.update_traces(line_color="#EF4444")
-        st.plotly_chart(fig_db, width="100%")
+        st.plotly_chart(fig_db, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Formal Model Card Section

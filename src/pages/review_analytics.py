@@ -33,7 +33,7 @@ def render(data_bundle):
         )
         fig_ratings.update_layout(**PLOTLY_DARK_THEME)
         fig_ratings.update_layout(coloraxis_showscale=False)
-        st.plotly_chart(fig_ratings, width="100%")
+        st.plotly_chart(fig_ratings, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -50,5 +50,5 @@ def render(data_bundle):
         )
         fig_cats.update_layout(**PLOTLY_DARK_THEME)
         fig_cats.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig_cats, width="100%")
+        st.plotly_chart(fig_cats, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)

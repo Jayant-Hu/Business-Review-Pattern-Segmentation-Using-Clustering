@@ -77,7 +77,7 @@ def render(data_bundle):
         st.markdown('<div class="saas-panel"><div class="panel-header">🚨 Municipal City Hotspot Rankings</div>', unsafe_allow_html=True)
         hotspots = compute_city_hotspots(biz_df)
         if not hotspots.empty:
-            st.dataframe(hotspots, width="100%")
+            st.dataframe(hotspots, use_container_width=True)
             csv_hotspots = hotspots.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Download City Hotspots (CSV)",

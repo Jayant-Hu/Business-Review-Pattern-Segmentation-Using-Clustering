@@ -21,7 +21,7 @@ def render(data_bundle):
         return
 
     st.markdown('<div class="saas-panel"><div class="panel-header">📋 Empirical Cluster Behavioral Profiles</div>', unsafe_allow_html=True)
-    st.dataframe(prof_df, width="100%")
+    st.dataframe(prof_df, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Compare Any Two Segments Tool
@@ -35,7 +35,7 @@ def render(data_bundle):
             seg_b = st.selectbox("Select Segment B:", all_segments, index=min(1, len(all_segments)-1))
             
         comparison_table = compare_two_segments(biz_df, seg_a, seg_b)
-        st.dataframe(comparison_table, width="100%")
+        st.dataframe(comparison_table, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Interactive filtering section
@@ -67,7 +67,7 @@ def render(data_bundle):
     st.markdown(f"**Found {len(filtered_df):,} matching establishments:**")
     cols_to_show = ['place', 'place type', 'address', 'city', 'cluster_name', 'avg_rating', 'sample_review_count', 'positive_review_pct', 'negative_review_pct']
     existing_cols = [c for c in cols_to_show if c in filtered_df.columns]
-    st.dataframe(filtered_df[existing_cols], width="100%")
+    st.dataframe(filtered_df[existing_cols], use_container_width=True)
 
     # Export Download Buttons (CSV)
     csv_data = filtered_df[existing_cols].to_csv(index=False).encode('utf-8')

@@ -19,7 +19,7 @@ def render(data_bundle):
     with col_l:
         st.markdown('<div class="saas-panel"><div class="panel-header">🌳 Ward Linkage Dendrogram (Truncated to 30 Merges)</div>', unsafe_allow_html=True)
         if dendro_path.exists():
-            st.image(str(dendro_path), width="100%")
+            st.image(str(dendro_path), use_container_width=True)
         else:
             render_empty_state("Dendrogram Not Found", "Run the hierarchical clustering pipeline step.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -27,7 +27,7 @@ def render(data_bundle):
     with col_r:
         st.markdown('<div class="saas-panel"><div class="panel-header">⚖️ Benchmark: K-Means vs. Agglomerative</div>', unsafe_allow_html=True)
         if comp_df is not None:
-            st.dataframe(comp_df, width="100%")
+            st.dataframe(comp_df, use_container_width=True)
         st.markdown("""
             <div style="font-size:12.5px; color:#94A3B8; line-height:1.6; margin-top:12px;">
                 <b>Methodological Takeaways:</b><br>

@@ -22,15 +22,15 @@ def render(data_bundle):
     with c1:
         st.markdown('<div class="saas-panel"><div class="panel-header">📉 Elbow Curve (Inertia / WCSS)</div>', unsafe_allow_html=True)
         fig_elbow = build_elbow_chart(eval_df, selected_k=settings.SELECTED_K)
-        st.plotly_chart(fig_elbow, width="100%")
+        st.plotly_chart(fig_elbow, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with c2:
         st.markdown('<div class="saas-panel"><div class="panel-header">📐 Distance Metric Comparison: Silhouette</div>', unsafe_allow_html=True)
         fig_dist = build_silhouette_comparison_chart(eval_df)
-        st.plotly_chart(fig_dist, width="100%")
+        st.plotly_chart(fig_dist, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="saas-panel"><div class="panel-header">📊 Quantitative Cluster Evaluation Metrics</div>', unsafe_allow_html=True)
-    st.dataframe(eval_df.style.highlight_max(axis=0, subset=['Silhouette_Euclidean', 'Silhouette_Manhattan'], color='#1E3A8A'), width="100%")
+    st.dataframe(eval_df.style.highlight_max(axis=0, subset=['Silhouette_Euclidean', 'Silhouette_Manhattan'], color='#1E3A8A'), use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)

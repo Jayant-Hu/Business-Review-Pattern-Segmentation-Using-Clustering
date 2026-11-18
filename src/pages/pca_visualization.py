@@ -21,12 +21,16 @@ def render(data_bundle):
         return
 
     merged_pca = pca_df.merge(
-        biz_df[['business_id', 'cluster_name', 'avg_rating', 'sample_review_count']],
+        biz_df[['business_id', 'avg_rating', 'sample_review_count']],
         on='business_id',
         how='left'
     )
+    if 'cluster_name' not in merged_pca.columns and 'cluster_name_x' in merged_pca.columns:
+        merged_pca['cluster_name'] = merged_pca['cluster_name_x']
+    elif 'cluster_name' not in merged_pca.columns and 'cluster_name_y' in merged_pca.columns:
+        merged_pca['cluster_name'] = merged_pca['cluster_name_y']
     
     st.markdown('<div class="saas-panel"><div class="panel-header">🔬 Interactive 2D Principal Component Projection (Variance Explained: 53.63%)</div>', unsafe_allow_html=True)
     fig_pca = build_pca_scatter(merged_pca)
-    st.plotly_chart(fig_pca, width="100%")
+    st.plotly_chart(fig_pca, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)

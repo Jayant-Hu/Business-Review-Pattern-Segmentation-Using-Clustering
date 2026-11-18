@@ -59,4 +59,4 @@ def render(data_bundle):
     )
     fig_missing.update_layout(**PLOTLY_DARK_THEME)
     fig_missing.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(fig_missing, width="100%")
+    st.plotly_chart(fig_missing, use_container_width=True)

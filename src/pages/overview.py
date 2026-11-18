@@ -43,7 +43,7 @@ def render(data_bundle):
     with col_left:
         st.markdown('<div class="saas-panel"><div class="panel-header">🎯 Segment Distribution</div>', unsafe_allow_html=True)
         fig_donut = build_donut_chart(prof_df)
-        st.plotly_chart(fig_donut, width="100%")
+        st.plotly_chart(fig_donut, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_right:
