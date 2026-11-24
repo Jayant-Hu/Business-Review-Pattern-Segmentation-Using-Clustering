@@ -65,6 +65,14 @@ class Settings(BaseSettings):
     NOMINATIM_USER_AGENT: str = "urbanpulse-geocoder"
     NOMINATIM_RATE_LIMIT_SEC: float = 1.1
 
+    # Profit Potential Index (PPI) Default Weights
+    PPI_WEIGHT_SATISFACTION: float = 0.35
+    PPI_WEIGHT_DEMAND: float = 0.30
+    PPI_WEIGHT_COMPETITION: float = 0.20
+    PPI_WEIGHT_RISK: float = 0.15
+    BAYESIAN_PRIOR_WEIGHT: float = 5.0
+    GLOBAL_MEAN_RATING: float = 4.0
+
     model_config = SettingsConfigDict(
         env_file=str(PROJECT_ROOT / ".env"),
         env_file_encoding="utf-8",

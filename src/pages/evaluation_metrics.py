@@ -54,14 +54,17 @@ def render(data_bundle):
     # Formal Model Card Section
     st.markdown("""
         <div class="saas-panel">
-            <div class="panel-header">📑 Formal Machine Learning Model Card</div>
+            <div class="panel-header">📑 Formal Machine Learning Model Card & Decision Advisor Methodology</div>
             <div style="font-size:13px; color:#94A3B8; line-height:1.7;">
                 <b>• Model Architecture:</b> Scikit-Learn Pipeline combining <code>StandardScaler</code> and <code>KMeans(n_clusters=4, random_state=42, n_init=15)</code>.<br>
                 <b>• Input Features (10-D):</b> <code>avg_rating</code>, <code>rating_std</code>, <code>log_sample_review_count</code>, <code>positive_review_pct</code>, <code>negative_review_pct</code>, <code>log_avg_review_length</code>, <code>detailed_review_pct</code>, <code>service_feedback_rate</code>, <code>food_feedback_rate</code>, <code>atmosphere_feedback_rate</code>.<br>
+                <b>• Profit Potential Index (PPI) Formula:</b><br>
+                &nbsp;&nbsp;<code>PPI = w_sat × Satisfaction + w_dem × DemandProxy + w_comp × LowCompetition + w_risk × (100 - RiskPenalty)</code><br>
+                &nbsp;&nbsp;Where Satisfaction uses Bayesian m-estimate shrinking (prior n=5.0, prior rating=4.0), DemandProxy uses logarithmic review density per business, LowCompetition penalizes market crowding, and RiskPenalty accounts for friction reviews and rating volatility.<br>
                 <b>• Objective Function:</b> Minimization of inertia (within-cluster sum of squared Euclidean distances).<br>
                 <b>• Hyperparameter Selection:</b> Evaluated K ∈ [2, 7]. K=4 selected as optimal Pareto balance between mathematical separation and city management actionability.<br>
-                <b>• Intended Use:</b> Decision-support for municipal commercial diagnostics, tourism showcases, and business support funding.<br>
-                <b>• Known Limitations:</b> Review data provenance is observational; sample counts represent snapshot frequencies rather than all-time historical traffic.
+                <b>• Intended Use:</b> Strategic decision-support for municipal commercial diagnostics, tourism showcases, and business support funding.<br>
+                <b>• Known Limitations & Honesty Principle:</b> The dataset contains customer review transactions only; it does NOT record revenue, operating costs, or customer footfall. All opportunity recommendations serve as diagnostic proxies, not financial forecasts.
             </div>
         </div>
     """, unsafe_allow_html=True)

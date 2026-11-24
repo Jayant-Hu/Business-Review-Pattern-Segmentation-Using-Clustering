@@ -19,6 +19,7 @@ from src.ui.styles import CUSTOM_CSS
 # Import Page Modules
 from src.pages import (
     overview,
+    decision_advisor,
     dataset_analysis,
     review_analytics,
     kmeans_clustering,
@@ -86,15 +87,16 @@ with st.sidebar:
         "Navigation",
         [
             "1. Overview",
-            "2. Dataset Analysis",
-            "3. Review Analytics",
-            "4. K-Means Clustering",
-            "5. Hierarchical Clustering",
-            "6. PCA Visualization",
-            "7. Evaluation Metrics",
-            "8. Business Segmentation",
-            "9. Recommendations",
-            "10. Map Explorer"
+            "2. Business Advisor (Decision Engine)",
+            "3. Dataset Analysis",
+            "4. Review Analytics",
+            "5. K-Means Clustering",
+            "6. Hierarchical Clustering",
+            "7. PCA Visualization",
+            "8. Evaluation Metrics",
+            "9. Business Segmentation",
+            "10. Recommendations",
+            "11. Map Explorer"
         ],
         label_visibility="collapsed"
     )
@@ -119,15 +121,16 @@ with st.sidebar:
 # Page Router
 ROUTER = {
     "1. Overview": overview.render,
-    "2. Dataset Analysis": dataset_analysis.render,
-    "3. Review Analytics": review_analytics.render,
-    "4. K-Means Clustering": kmeans_clustering.render,
-    "5. Hierarchical Clustering": hierarchical_clustering.render,
-    "6. PCA Visualization": pca_visualization.render,
-    "7. Evaluation Metrics": evaluation_metrics.render,
-    "8. Business Segmentation": business_segmentation.render,
-    "9. Recommendations": recommendations.render,
-    "10. Map Explorer": map_explorer.render
+    "2. Business Advisor (Decision Engine)": decision_advisor.render,
+    "3. Dataset Analysis": dataset_analysis.render,
+    "4. Review Analytics": review_analytics.render,
+    "5. K-Means Clustering": kmeans_clustering.render,
+    "6. Hierarchical Clustering": hierarchical_clustering.render,
+    "7. PCA Visualization": pca_visualization.render,
+    "8. Evaluation Metrics": evaluation_metrics.render,
+    "9. Business Segmentation": business_segmentation.render,
+    "10. Recommendations": recommendations.render,
+    "11. Map Explorer": map_explorer.render
 }
 
 # Execute matched page renderer
