@@ -17,6 +17,8 @@ ENV/
 
 # Explicitly ensure src/data package is never ignored
 !src/data/**
+src/data/**/__pycache__/
+src/data/**/*.py[cod]
 
 # Geocode cache & persistent local logs
 logs/
