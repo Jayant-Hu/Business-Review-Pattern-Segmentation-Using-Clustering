@@ -13,7 +13,9 @@ from src.services.decision_advisor import (
     compute_ppi_score,
     calculate_breakeven_helper,
     haversine_km,
-    extract_customer_voice
+    extract_customer_voice,
+    compute_opportunity_leaderboard,
+    OPPORTUNITY_DEFINITIONS
 )
 from src.services.report_generator import generate_advisor_pdf
 
@@ -79,3 +81,50 @@ def test_advisor_pdf_generation():
     assert isinstance(pdf_bytes, bytes)
     assert len(pdf_bytes) > 1000
     assert pdf_bytes.startswith(b'%PDF')
+
+def test_compute_opportunity_leaderboard():
+    sample_df = pd.DataFrame([
+        {
+            'city': 'Dubai',
+            'place type': 'Cafe',
+            'sample_review_count': 50,
+            'avg_rating': 4.8,
+            'positive_review_pct': 92.0,
+            'negative_review_pct': 2.0,
+            'rating_std': 0.3,
+            'cluster_name': 'High-Satisfaction Top Tier'
+        },
+        {
+            'city': 'Dubai',
+            'place type': 'Cafe',
+            'sample_review_count': 60,
+            'avg_rating': 4.6,
+            'positive_review_pct': 88.0,
+            'negative_review_pct': 4.0,
+            'rating_std': 0.4,
+            'cluster_name': 'High-Satisfaction Top Tier'
+        },
+        {
+            'city': 'Sharjah',
+            'place type': 'Bakery',
+            'sample_review_count': 20,
+            'avg_rating': 3.5,
+            'positive_review_pct': 60.0,
+            'negative_review_pct': 20.0,
+            'rating_std': 0.8,
+            'cluster_name': 'Critical Intervention / At-Risk'
+        }
+    ])
+    # Minimum 2 businesses filters out Sharjah Bakery
+    leaderboard = compute_opportunity_leaderboard(sample_df, min_businesses=2)
+    assert not leaderboard.empty
+    assert len(leaderboard) == 1
+    assert leaderboard.iloc[0]['city'] == 'Dubai'
+    assert leaderboard.iloc[0]['category'] == 'Cafe'
+    assert leaderboard.iloc[0]['business_count'] == 2
+    assert leaderboard.iloc[0]['ppi_score'] > 0
+    assert 'opportunity_type' in leaderboard.columns
+
+    # Test empty input safety
+    empty_res = compute_opportunity_leaderboard(None)
+    assert empty_res.empty

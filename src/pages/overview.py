@@ -172,7 +172,9 @@ def render(data_bundle):
     with c_donut:
         fig_donut = build_donut_chart(prof_df)
         largest_seg = prof_df.sort_values(by='business_count', ascending=False).iloc[0]
-        insight_msg = f"{largest_seg['cluster_name']} accounts for the largest proportion ({largest_seg['business_count']:,} businesses, {largest_seg['share_pct']:.1f}%)."
+        total_b = prof_df['business_count'].sum() if 'business_count' in prof_df.columns and prof_df['business_count'].sum() > 0 else 1
+        share_pct = (largest_seg['business_count'] / total_b * 100.0) if 'business_count' in largest_seg else 0.0
+        insight_msg = f"{largest_seg.get('cluster_name', 'Top Segment')} accounts for the largest proportion ({int(largest_seg.get('business_count', 0)):,} establishments, {share_pct:.1f}%)."
         render_chart_container(
             "Cluster Distribution Across Commercial Establishments",
             fig_donut,

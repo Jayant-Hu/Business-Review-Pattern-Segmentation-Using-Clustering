@@ -18,6 +18,14 @@ HONESTY_DISCLAIMER = (
     "Validate with local market research before investing."
 )
 
+OPPORTUNITY_DEFINITIONS: Dict[str, str] = {
+    "Proven Market": "High customer volume and high satisfaction ratings across existing establishments.",
+    "Underserved Gap": "Strong demand signals with few existing commercial competitors.",
+    "Quality Gap": "Substantial customer volume but elevated dissatisfaction/negative sentiment.",
+    "Saturated Market": "Many competing venues with fragmented, diluted customer review activity.",
+    "Weak Demand": "Depressed review volume and low customer engagement across venues."
+}
+
 STOPWORDS = {
     'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're",
     "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he',
@@ -261,3 +269,75 @@ def calculate_breakeven_helper(avg_ticket: float, monthly_fixed_cost: float, mar
         'daily_customers': math.ceil(required_customers / 30),
         'monthly_revenue': round(required_revenue, 2)
     }
+
+def compute_opportunity_leaderboard(
+    biz_df: Optional[pd.DataFrame],
+    min_businesses: int = 2
+) -> pd.DataFrame:
+    """
+    Computes a market opportunity leaderboard across all (city, category) combinations.
+    Calculates Bayesian-shrunk ratings, demand scores, and PPI rankings using empirical data.
+    """
+    empty_cols = [
+        'city', 'category', 'business_count', 'total_reviews',
+        'avg_rating', 'shrunk_rating', 'positive_pct', 'negative_pct',
+        'ppi_score', 'opportunity_type', 'confidence'
+    ]
+    if biz_df is None or biz_df.empty:
+        return pd.DataFrame(columns=empty_cols)
+
+    required_cols = {'city', 'place type', 'avg_rating', 'sample_review_count', 'positive_review_pct', 'negative_review_pct'}
+    if not required_cols.issubset(set(biz_df.columns)):
+        return pd.DataFrame(columns=empty_cols)
+
+    records = []
+    # Filter out Unknown cities and blank categories
+    valid_df = biz_df[
+        biz_df['city'].notna() &
+        (biz_df['city'] != 'Unknown') &
+        biz_df['place type'].notna() &
+        (biz_df['place type'].astype(str).str.strip() != '')
+    ]
+
+    for (city, category), group in valid_df.groupby(['city', 'place type']):
+        biz_count = len(group)
+        if biz_count < min_businesses:
+            continue
+
+        total_reviews = int(group['sample_review_count'].sum())
+        avg_rating = float(group['avg_rating'].mean())
+        shrunk_rating = calculate_bayesian_rating(total_reviews, avg_rating)
+        positive_pct = float(group['positive_review_pct'].mean())
+        negative_pct = float(group['negative_review_pct'].mean())
+        rating_std = float(group['rating_std'].mean()) if 'rating_std' in group.columns else 0.5
+        at_risk_share = float((group['cluster_name'] == 'Critical Intervention / At-Risk').mean() * 100.0) if 'cluster_name' in group.columns else 0.0
+
+        ppi, opp_type, confidence, _, _ = compute_ppi_score(
+            biz_count=biz_count,
+            total_reviews=total_reviews,
+            avg_rating=avg_rating,
+            positive_pct=positive_pct,
+            negative_pct=negative_pct,
+            rating_std=rating_std,
+            at_risk_share=at_risk_share
+        )
+
+        records.append({
+            'city': str(city),
+            'category': str(category),
+            'business_count': biz_count,
+            'total_reviews': total_reviews,
+            'avg_rating': round(avg_rating, 2),
+            'shrunk_rating': round(shrunk_rating, 2),
+            'positive_pct': round(positive_pct, 1),
+            'negative_pct': round(negative_pct, 1),
+            'ppi_score': ppi,
+            'opportunity_type': opp_type,
+            'confidence': confidence
+        })
+
+    if not records:
+        return pd.DataFrame(columns=empty_cols)
+
+    leader_df = pd.DataFrame(records)
+    return leader_df.sort_values(by='ppi_score', ascending=False).reset_index(drop=True)
