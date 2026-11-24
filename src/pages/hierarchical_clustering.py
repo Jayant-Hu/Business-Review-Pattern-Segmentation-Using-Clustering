@@ -1,38 +1,51 @@
 """
-Page 5: Hierarchical Clustering.
+Agglomerative Hierarchical Clustering Page.
+Ward linkage dendrogram and comparative algorithm validation against K-Means.
 """
 import streamlit as st
-from src.ui.components import render_header, render_empty_state
+from src.ui.components import (
+    render_header,
+    render_empty_state,
+    render_footer,
+    render_section_header,
+    render_paginated_table,
+    render_info_callout
+)
 from src.utils.paths import settings
 
 def render(data_bundle):
     render_header(
         "Agglomerative Hierarchical Clustering",
         "Ward linkage dendrogram analysis and comparative benchmark against K-Means partitioning.",
-        "TAXONOMICAL STRUCTURE"
+        badge="TAXONOMICAL STRUCTURE",
+        breadcrumbs=["Platform", "Analyze", "Hierarchical Clustering"]
     )
 
-    comp_df = data_bundle['comp']
+    comp_df = data_bundle.get('comp')
     dendro_path = settings.OUTPUT_GRAPHS_DIR / "dendrogram.png"
 
-    col_l, col_r = st.columns([1.4, 1.0])
+    col_l, col_r = st.columns([1.35, 1.0])
     with col_l:
         st.markdown('<div class="saas-panel"><div class="panel-header">🌳 Ward Linkage Dendrogram (Truncated to 30 Merges)</div>', unsafe_allow_html=True)
         if dendro_path.exists():
             st.image(str(dendro_path), use_container_width=True)
+            st.caption("Visualizes the hierarchical merge tree. Vertical line heights correspond to cophenetic distance between merged subclusters.")
         else:
-            render_empty_state("Dendrogram Not Found", "Run the hierarchical clustering pipeline step.")
+            render_empty_state("Dendrogram Graph Missing", "Run the hierarchical clustering pipeline step to generate graph.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_r:
-        st.markdown('<div class="saas-panel"><div class="panel-header">⚖️ Benchmark: K-Means vs. Agglomerative</div>', unsafe_allow_html=True)
-        if comp_df is not None:
-            st.dataframe(comp_df, use_container_width=True)
-        st.markdown("""
-            <div style="font-size:12.5px; color:#94A3B8; line-height:1.6; margin-top:12px;">
-                <b>Methodological Takeaways:</b><br>
-                1. <b>Ward Linkage</b> minimizes the total within-cluster variance, matching the objective function of K-Means.<br>
-                2. Both methods converge around <b>Silhouette ~ 0.43</b> and <b>Davies-Bouldin ~ 0.99</b>, verifying that the 4 clusters represent real underlying behavioral separations rather than algorithm-specific artifacts.
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="saas-panel"><div class="panel-header">⚖️ Algorithm Comparison: K-Means vs. Agglomerative</div>', unsafe_allow_html=True)
+        if comp_df is not None and not comp_df.empty:
+            render_paginated_table(comp_df, key_prefix="hier_comp", page_size=5, download_filename="algorithm_benchmark.csv")
+        else:
+            st.info("Comparison data not available.")
+
+        render_info_callout(
+            "Both K-Means and Agglomerative Ward converge on virtually identical Silhouette (~0.439) and Davies-Bouldin (~0.999) scores, demonstrating that the 4 clusters represent genuine natural data partitions rather than algorithmic bias.",
+            title="Structural Validation",
+            callout_type="success"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
+
+    render_footer()

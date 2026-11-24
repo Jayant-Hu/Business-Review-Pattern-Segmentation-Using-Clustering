@@ -1,80 +1,72 @@
 """
-Page 8: Business Segmentation & Comparative Analysis.
+Commercial Business Segmentation & Profiles Page.
+Displays cluster behavioral baselines, 2-segment comparison tool, and filtered establishment tables.
 """
 import streamlit as st
 import pandas as pd
-from src.ui.components import render_header, render_empty_state
+from src.ui.components import (
+    render_header,
+    render_empty_state,
+    render_footer,
+    render_section_header,
+    render_paginated_table,
+    render_info_callout,
+    render_badge
+)
 from src.services.analytics import compare_two_segments
 
 def render(data_bundle):
     render_header(
         "Commercial Business Segmentation & Profiles",
-        "Discovered cluster behavioral baselines, segment comparison, and interactive filtering.",
-        "SEGMENT EXPLORER"
+        "Discovered cluster behavioral baselines, side-by-side segment comparisons, and filtered establishment explorer.",
+        badge="SEGMENT EXPLORER",
+        breadcrumbs=["Platform", "Analyze", "Business Segmentation"]
     )
 
-    prof_df = data_bundle['prof']
-    biz_df = data_bundle['biz']
+    prof_df = data_bundle.get('prof')
+    biz_df = data_bundle.get('biz_filtered', data_bundle.get('biz'))
 
     if biz_df is None or prof_df is None:
-        render_empty_state("Clustering Data Not Loaded", "Run the pipeline to generate clustered_businesses.csv.")
+        render_empty_state(
+            "Clustering Data Not Loaded",
+            "Run the pipeline to generate clustered_businesses.csv and cluster_profiles.csv.",
+            action_command="python scripts/run_pipeline.py"
+        )
+        render_footer()
         return
 
-    st.markdown('<div class="saas-panel"><div class="panel-header">📋 Empirical Cluster Behavioral Profiles</div>', unsafe_allow_html=True)
-    st.dataframe(prof_df, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Section 1: Empirical Cluster Behavioral Profiles
+    render_section_header("Empirical Cluster Behavioral Profiles")
+    st.dataframe(prof_df, use_container_width=True, hide_index=True)
 
-    # Compare Any Two Segments Tool
-    st.markdown('<div class="saas-panel"><div class="panel-header">⚖️ Compare Any Two Segments</div>', unsafe_allow_html=True)
+    # Section 2: Compare Any Two Segments Side-by-Side
+    render_section_header("Compare Any Two Segments Side-by-Side")
     all_segments = sorted(biz_df['cluster_name'].dropna().unique().tolist())
     if len(all_segments) >= 2:
-        col_a, col_b = st.columns(2)
-        with col_a:
-            seg_a = st.selectbox("Select Segment A:", all_segments, index=0)
-        with col_b:
-            seg_b = st.selectbox("Select Segment B:", all_segments, index=min(1, len(all_segments)-1))
-            
-        comparison_table = compare_two_segments(biz_df, seg_a, seg_b)
-        st.dataframe(comparison_table, use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        c_a, c_b = st.columns(2)
+        with c_a:
+            seg_a = st.selectbox("Select Segment A:", all_segments, index=0, key="seg_cmp_a")
+        with c_b:
+            seg_b = st.selectbox("Select Segment B:", all_segments, index=min(1, len(all_segments)-1), key="seg_cmp_b")
 
-    # Interactive filtering section
-    st.markdown('<div class="saas-panel"><div class="panel-header">🔍 Filter Businesses by Segment & Category</div>', unsafe_allow_html=True)
-    
-    f1, f2, f3 = st.columns([1.5, 1.5, 1.0])
-    with f1:
-        cluster_filter = st.multiselect(
-            "Filter Cluster Segment:",
-            options=all_segments,
-            default=all_segments
-        )
-    with f2:
-        all_cats = sorted(biz_df['place type'].dropna().unique().tolist())
-        category_filter = st.multiselect(
-            "Filter Category:",
-            options=all_cats,
-            default=all_cats[:5] if len(all_cats) >= 5 else all_cats
-        )
-    with f3:
-        min_rating_filter = st.slider("Min Avg Rating:", 1.0, 5.0, 1.0, 0.1)
+        comparison_table = compare_two_segments(data_bundle.get('biz', biz_df), seg_a, seg_b)
+        st.dataframe(comparison_table, use_container_width=True, hide_index=True)
+    else:
+        st.info("Insufficient segment data to perform 2-segment comparison.")
 
-    filtered_df = biz_df[
-        (biz_df['cluster_name'].isin(cluster_filter)) &
-        (biz_df['place type'].isin(category_filter)) &
-        (biz_df['avg_rating'] >= min_rating_filter)
+    # Section 3: Filtered Establishment Directory
+    render_section_header("Segmented Establishment Directory")
+    display_cols = [
+        'place', 'place type', 'city', 'cluster_name',
+        'avg_rating', 'sample_review_count', 'positive_review_pct', 'negative_review_pct', 'address'
     ]
+    avail_cols = [c for c in display_cols if c in biz_df.columns]
 
-    st.markdown(f"**Found {len(filtered_df):,} matching establishments:**")
-    cols_to_show = ['place', 'place type', 'address', 'city', 'cluster_name', 'avg_rating', 'sample_review_count', 'positive_review_pct', 'negative_review_pct']
-    existing_cols = [c for c in cols_to_show if c in filtered_df.columns]
-    st.dataframe(filtered_df[existing_cols], use_container_width=True)
-
-    # Export Download Buttons (CSV)
-    csv_data = filtered_df[existing_cols].to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download Filtered Segment Report (CSV)",
-        data=csv_data,
-        file_name="segmented_businesses_report.csv",
-        mime="text/csv"
+    render_paginated_table(
+        biz_df[avail_cols],
+        key_prefix="segmented_biz_table",
+        page_size=15,
+        download_filename="segmented_establishments.csv"
     )
-    st.markdown('</div>', unsafe_allow_html=True)
+
+    render_footer()

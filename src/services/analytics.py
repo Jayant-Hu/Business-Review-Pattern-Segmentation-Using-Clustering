@@ -73,13 +73,18 @@ def compare_two_segments(biz_df: pd.DataFrame, seg_a: str, seg_b: str) -> pd.Dat
         'negative_review_pct', 'avg_review_length', 'service_feedback_rate',
         'food_feedback_rate', 'atmosphere_feedback_rate'
     ]
-    
-    df_a = biz_df[biz_df['cluster_name'] == seg_a][features].mean().round(2)
-    df_b = biz_df[biz_df['cluster_name'] == seg_b][features].mean().round(2)
-    
+    avail = [f for f in features if f in biz_df.columns]
+    if not avail:
+        avail = [c for c in biz_df.select_dtypes(include=['number']).columns if c not in ['cluster', 'latitude', 'longitude']]
+
+    df_a = biz_df[biz_df['cluster_name'] == seg_a][avail].mean().round(2)
+    df_b = biz_df[biz_df['cluster_name'] == seg_b][avail].mean().round(2)
+
     comp = pd.DataFrame({
-        f"Segment A: {seg_a}": df_a,
-        f"Segment B: {seg_b}": df_b
+        seg_a: df_a,
+        seg_b: df_b
     })
-    comp['Absolute Difference'] = (comp[f"Segment A: {seg_a}"] - comp[f"Segment B: {seg_b}"]).abs().round(2)
+    comp['Difference'] = (comp[seg_a] - comp[seg_b]).abs().round(2)
+    comp = comp.reset_index()
+    comp = comp.rename(columns={'index': 'Metric'})
     return comp

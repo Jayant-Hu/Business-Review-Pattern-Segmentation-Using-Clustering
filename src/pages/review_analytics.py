@@ -1,26 +1,38 @@
 """
-Page 3: Review Analytics.
+Review Analytics & Rating Distribution Page.
+Explores sentiment polarity, rating frequency, and category review volume.
 """
 import streamlit as st
 import plotly.express as px
-from src.ui.components import render_header, render_empty_state
-from src.ui.theme import PLOTLY_DARK_THEME
+from src.ui.components import (
+    render_header,
+    render_empty_state,
+    render_chart_container,
+    render_footer,
+    render_section_header,
+    render_paginated_table
+)
 
 def render(data_bundle):
     render_header(
         "Customer Review Distribution & Frequency",
         "Exploration of customer sentiment polarity, rating frequency, and industry place categories.",
-        "BEHAVIORAL SIGNALS"
+        badge="BEHAVIORAL SIGNALS",
+        breadcrumbs=["Platform", "Analyze", "Review Analytics"]
     )
 
-    rev_df = data_bundle['rev']
-    if rev_df is None:
-        render_empty_state("Reviews Not Loaded", "Processed review data not found.")
+    rev_df = data_bundle.get('rev')
+    if rev_df is None or rev_df.empty:
+        render_empty_state(
+            "Reviews Not Loaded",
+            "Processed review data not found.",
+            action_command="python scripts/run_pipeline.py"
+        )
+        render_footer()
         return
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown('<div class="saas-panel"><div class="panel-header">⭐ Customer Rating Distribution</div>', unsafe_allow_html=True)
         rating_counts = rev_df['rating'].value_counts().sort_index().reset_index()
         rating_counts.columns = ['Rating', 'Reviews']
         fig_ratings = px.bar(
@@ -31,13 +43,16 @@ def render(data_bundle):
             color_continuous_scale='Blues',
             text='Reviews'
         )
-        fig_ratings.update_layout(**PLOTLY_DARK_THEME)
         fig_ratings.update_layout(coloraxis_showscale=False)
-        st.plotly_chart(fig_ratings, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        pos_share = (rev_df['rating'] >= 4).mean() * 100.0
+        render_chart_container(
+            "Customer Rating Distribution (1 to 5 Stars)",
+            fig_ratings,
+            insight=f"Ratings exhibit a strong positive skew: {pos_share:.1f}% of reviews award 4 or 5 stars, while 1-star ratings represent the primary signal for critical interventions.",
+            help_text="Histogram of star ratings awarded across all sample reviews. Power-law positive skew is standard across Google Local platforms."
+        )
 
     with col2:
-        st.markdown('<div class="saas-panel"><div class="panel-header">🏬 Top 10 Commercial Categories</div>', unsafe_allow_html=True)
         top_cats = rev_df['place type'].value_counts().head(10).reset_index()
         top_cats.columns = ['Category', 'Reviews']
         fig_cats = px.bar(
@@ -48,7 +63,13 @@ def render(data_bundle):
             color='Reviews',
             color_continuous_scale='Viridis'
         )
-        fig_cats.update_layout(**PLOTLY_DARK_THEME)
         fig_cats.update_layout(coloraxis_showscale=False, yaxis=dict(autorange="reversed"))
-        st.plotly_chart(fig_cats, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        top_cat_name = top_cats.iloc[0]['Category']
+        render_chart_container(
+            "Top 10 Commercial Categories by Review Volume",
+            fig_cats,
+            insight=f"'{top_cat_name}' generates the largest review volume ({top_cats.iloc[0]['Reviews']:,} reviews), dominating overall consumer engagement.",
+            help_text="Horizontal bar chart illustrating commercial sectors with the highest public review activity."
+        )
+
+    render_footer()

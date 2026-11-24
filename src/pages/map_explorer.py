@@ -7,7 +7,7 @@ Dual rendering:
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
-from src.ui.components import render_header, render_empty_state
+from src.ui.components import render_header, render_empty_state, render_footer
 from src.ui.styles import SEGMENT_COLORS
 from src.utils.paths import settings
 from src.services.analytics import compute_city_hotspots
@@ -16,7 +16,8 @@ def render(data_bundle):
     render_header(
         "Interactive Geospatial Map Explorer",
         "Geocoded business locations color-coded by cluster segment, density heatmap, and municipal hotspots.",
-        "GEOSPATIAL INTELLIGENCE"
+        badge="GEOSPATIAL INTELLIGENCE",
+        breadcrumbs=["Platform", "Explore", "Map Explorer"]
     )
 
     biz_df = data_bundle['biz']
@@ -110,6 +111,8 @@ def render(data_bundle):
             gmaps_url = f"https://www.google.com/maps/search/?api=1&query={lat},{lng}"
             st.markdown(f'<div style="margin-top:12px;"><a href="{gmaps_url}" target="_blank" style="color:#3B82F6; font-size:12px; text-decoration:none;">↗ Open in Google Maps</a></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
+    render_footer()
 
 def _render_pydeck_map(df: pd.DataFrame, layer_mode: str):
     """Renders performant PyDeck map with custom dark theme."""

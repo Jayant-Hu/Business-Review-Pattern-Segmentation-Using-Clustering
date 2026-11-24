@@ -1,28 +1,41 @@
 """
-Page 7: Evaluation Metrics & Model Card.
+Quantitative Model Evaluation & Stability Page.
+Provides Silhouette, Davies-Bouldin, and Adjusted Rand Index across initialization seeds.
 """
 import streamlit as st
 import plotly.express as px
-from src.ui.components import render_header, render_empty_state
-from src.ui.theme import PLOTLY_DARK_THEME
+from src.ui.components import (
+    render_header,
+    render_empty_state,
+    render_chart_container,
+    render_footer,
+    render_section_header,
+    render_paginated_table
+)
+from src.ui.theme import get_plotly_theme
 
 def render(data_bundle):
     render_header(
-        "Quantitative Model Evaluation & Model Card",
-        "Mathematical rigor: WCSS, Silhouette Cohesion, Davies-Bouldin Index, and Adjusted Rand Index.",
-        "ACADEMIC RIGOR"
+        "Quantitative Model Evaluation & Stability",
+        "Mathematical validation: WCSS Inertia, Silhouette Cohesion, Davies-Bouldin Index, and Seed Stability.",
+        badge="ACADEMIC RIGOR",
+        breadcrumbs=["Platform", "Analyze", "Evaluation Metrics"]
     )
 
-    eval_df = data_bundle['eval']
-    stab_df = data_bundle['stab']
+    eval_df = data_bundle.get('eval')
+    stab_df = data_bundle.get('stab')
 
     if eval_df is None or stab_df is None:
-        render_empty_state("Evaluation Metrics Not Loaded", "Run pipeline to generate model metrics.")
+        render_empty_state(
+            "Evaluation Metrics Not Loaded",
+            "Run pipeline to generate model metrics and stability results.",
+            action_command="python scripts/run_pipeline.py"
+        )
+        render_footer()
         return
 
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown('<div class="saas-panel"><div class="panel-header">🛡️ Cluster Assignment Stability (Adjusted Rand Index)</div>', unsafe_allow_html=True)
         fig_stab = px.bar(
             stab_df,
             x='seed_comparison',
@@ -32,39 +45,35 @@ def render(data_bundle):
             range_y=[0.95, 1.0],
             text='ARI'
         )
-        fig_stab.update_layout(**PLOTLY_DARK_THEME)
         fig_stab.update_layout(coloraxis_showscale=False)
-        st.plotly_chart(fig_stab, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        render_chart_container(
+            "Cluster Assignment Stability Across 5 Random Seeds",
+            fig_stab,
+            insight=f"Mean ARI of {stab_df['ARI'].mean()*100:.2f}% confirms that cluster partitions are reproducible and immune to initialization perturbations.",
+            help_text="Adjusted Rand Index (ARI) evaluates consistency between two independent clustering runs. Scores above 0.90 signify exceptional cluster stability."
+        )
 
     with c2:
-        st.markdown('<div class="saas-panel"><div class="panel-header">📉 Davies-Bouldin Index (Lower is Better)</div>', unsafe_allow_html=True)
         fig_db = px.line(
             eval_df,
             x='k',
             y='Davies_Bouldin',
-            markers=True,
-            title="Davies-Bouldin Metric Across K=2..7"
+            markers=True
         )
-        fig_db.update_layout(**PLOTLY_DARK_THEME)
-        fig_db.update_traces(line_color="#EF4444")
-        st.plotly_chart(fig_db, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        fig_db.update_traces(line_color="#EF4444", line_width=3, marker=dict(size=8))
+        render_chart_container(
+            "Davies-Bouldin Index Across K = 2..7 (Lower is Better)",
+            fig_db,
+            insight="Davies-Bouldin Index reaches an optimal minimum at K=4, indicating maximum ratio of inter-cluster separation to intra-cluster spread.",
+            help_text="Davies-Bouldin measures the average similarity of each cluster to its most similar cluster. Lower values denote superior separation."
+        )
 
-    # Formal Model Card Section
-    st.markdown("""
-        <div class="saas-panel">
-            <div class="panel-header">📑 Formal Machine Learning Model Card & Decision Advisor Methodology</div>
-            <div style="font-size:13px; color:#94A3B8; line-height:1.7;">
-                <b>• Model Architecture:</b> Scikit-Learn Pipeline combining <code>StandardScaler</code> and <code>KMeans(n_clusters=4, random_state=42, n_init=15)</code>.<br>
-                <b>• Input Features (10-D):</b> <code>avg_rating</code>, <code>rating_std</code>, <code>log_sample_review_count</code>, <code>positive_review_pct</code>, <code>negative_review_pct</code>, <code>log_avg_review_length</code>, <code>detailed_review_pct</code>, <code>service_feedback_rate</code>, <code>food_feedback_rate</code>, <code>atmosphere_feedback_rate</code>.<br>
-                <b>• Profit Potential Index (PPI) Formula:</b><br>
-                &nbsp;&nbsp;<code>PPI = w_sat × Satisfaction + w_dem × DemandProxy + w_comp × LowCompetition + w_risk × (100 - RiskPenalty)</code><br>
-                &nbsp;&nbsp;Where Satisfaction uses Bayesian m-estimate shrinking (prior n=5.0, prior rating=4.0), DemandProxy uses logarithmic review density per business, LowCompetition penalizes market crowding, and RiskPenalty accounts for friction reviews and rating volatility.<br>
-                <b>• Objective Function:</b> Minimization of inertia (within-cluster sum of squared Euclidean distances).<br>
-                <b>• Hyperparameter Selection:</b> Evaluated K ∈ [2, 7]. K=4 selected as optimal Pareto balance between mathematical separation and city management actionability.<br>
-                <b>• Intended Use:</b> Strategic decision-support for municipal commercial diagnostics, tourism showcases, and business support funding.<br>
-                <b>• Known Limitations & Honesty Principle:</b> The dataset contains customer review transactions only; it does NOT record revenue, operating costs, or customer footfall. All opportunity recommendations serve as diagnostic proxies, not financial forecasts.
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    render_section_header("Complete Evaluation Metric Table")
+    render_paginated_table(
+        eval_df,
+        key_prefix="eval_summary_table",
+        page_size=10,
+        download_filename="evaluation_metrics_full.csv"
+    )
+
+    render_footer()

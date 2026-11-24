@@ -1,23 +1,35 @@
 """
-Page 9: Strategic Recommendations.
-Generated dynamically by Segment Role to survive re-clustering.
+Strategic Civic & Commercial Recommendations Page.
+Actionable operational roadmaps derived dynamically from empirical cluster roles.
 """
 import streamlit as st
-from src.ui.components import render_header, render_empty_state
+from src.ui.components import (
+    render_header,
+    render_empty_state,
+    render_footer,
+    render_section_header,
+    render_badge
+)
 from src.ui.styles import SEGMENT_COLORS
 
 def render(data_bundle):
     render_header(
         "City-Service Strategic Recommendations",
         "Targeted urban policy interventions, licensing audits, and tourism showcases derived from cluster patterns.",
-        "CIVIC DECISION SUPPORT"
+        badge="CIVIC DECISION SUPPORT",
+        breadcrumbs=["Platform", "Decide", "Strategic Recommendations"]
     )
 
-    biz_df = data_bundle['biz']
-    prof_df = data_bundle['prof']
+    biz_df = data_bundle.get('biz')
+    prof_df = data_bundle.get('prof')
 
     if biz_df is None or prof_df is None:
-        render_empty_state("Segmentation Results Not Loaded", "Run the pipeline to generate cluster profiles.")
+        render_empty_state(
+            "Segmentation Results Not Loaded",
+            "Run the pipeline to generate cluster profiles.",
+            action_command="python scripts/run_pipeline.py"
+        )
+        render_footer()
         return
 
     # Dynamic counts per segment
@@ -32,9 +44,9 @@ def render(data_bundle):
         st.markdown(f"""
             <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['High-Satisfaction Top Tier']};">
                 <div style="font-weight:700; color:{SEGMENT_COLORS['High-Satisfaction Top Tier']}; font-size:15px; margin-bottom:8px;">
-                    🏆 High-Satisfaction Top Tier ({top_tier_count:,} Businesses)
+                    🏆 High-Satisfaction Top Tier ({top_tier_count:,} Establishments)
                 </div>
-                <div style="font-size:13px; color:#94A3B8; line-height:1.6;">
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                     <b>Characteristics:</b> Benchmark customer satisfaction, near-zero negative sentiment, consistent high ratings.<br><br>
                     <b>Strategic Civic Actions:</b>
                     <ul>
@@ -47,9 +59,9 @@ def render(data_bundle):
             
             <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['High-Engagement Detailed Feedback']};">
                 <div style="font-weight:700; color:{SEGMENT_COLORS['High-Engagement Detailed Feedback']}; font-size:15px; margin-bottom:8px;">
-                    💬 High-Engagement Detailed Feedback ({detailed_count:,} Businesses)
+                    💬 High-Engagement Detailed Feedback ({detailed_count:,} Establishments)
                 </div>
-                <div style="font-size:13px; color:#94A3B8; line-height:1.6;">
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                     <b>Characteristics:</b> Highly vocal customer base, high frequency of service and food mentions, long descriptive reviews.<br><br>
                     <b>Strategic Civic Actions:</b>
                     <ul>
@@ -64,9 +76,9 @@ def render(data_bundle):
         st.markdown(f"""
             <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['Moderate / Mixed Feedback']};">
                 <div style="font-weight:700; color:{SEGMENT_COLORS['Moderate / Mixed Feedback']}; font-size:15px; margin-bottom:8px;">
-                    ⚖️ Moderate / Mixed Feedback ({moderate_count:,} Businesses)
+                    ⚖️ Moderate / Mixed Feedback ({moderate_count:,} Establishments)
                 </div>
-                <div style="font-size:13px; color:#94A3B8; line-height:1.6;">
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                     <b>Characteristics:</b> Satisfactory ratings with brief reviews and lower review volume.<br><br>
                     <b>Strategic Civic Actions:</b>
                     <ul>
@@ -78,9 +90,9 @@ def render(data_bundle):
 
             <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['Critical Intervention / At-Risk']};">
                 <div style="font-weight:700; color:{SEGMENT_COLORS['Critical Intervention / At-Risk']}; font-size:15px; margin-bottom:8px;">
-                    🚨 Critical Intervention / At-Risk ({at_risk_count:,} Businesses)
+                    🚨 Critical Intervention / At-Risk ({at_risk_count:,} Establishments)
                 </div>
-                <div style="font-size:13px; color:#94A3B8; line-height:1.6;">
+                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                     <b>Characteristics:</b> High rate of customer complaints and 1-2 star reviews indicating operational friction.<br><br>
                     <b>Strategic Civic Actions:</b>
                     <ul>
@@ -91,3 +103,5 @@ def render(data_bundle):
                 </div>
             </div>
         """, unsafe_allow_html=True)
+
+    render_footer()

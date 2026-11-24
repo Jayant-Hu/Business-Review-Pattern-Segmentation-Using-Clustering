@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from src.utils.paths import settings
 from src.utils.logging import logger
+from src.data.cleaning import sanitize_review_text
 
 HONESTY_DISCLAIMER = (
     "Disclaimer: Based on review behaviour as a proxy; not a financial forecast. "
@@ -185,16 +186,15 @@ def extract_customer_voice(reviews_df: pd.DataFrame, place_names: List[str]) -> 
             non_zero = subset[subset[col] > 0][col]
             aspects[aspect.capitalize()] = round(float(non_zero.mean()), 1) if not non_zero.empty else None
 
-    # Sanitized sample quotes (truncated to 110 chars)
+    # Sanitized sample quotes (truncated to 140 chars and PII-masked)
     quotes = []
     quote_candidates = subset[subset['en review'].str.len() > 15].drop_duplicates(subset=['en review']).head(4)
     for _, q_row in quote_candidates.iterrows():
-        text = str(q_row['en review']).strip()
-        if len(text) > 110:
-            text = text[:107] + "..."
+        raw_text = str(q_row['en review']).strip()
+        sanitized = sanitize_review_text(raw_text, max_len=140)
         quotes.append({
             'rating': q_row['rating'],
-            'text': text,
+            'text': sanitized,
             'aspect': q_row.get('meal_type', 'General')
         })
 
