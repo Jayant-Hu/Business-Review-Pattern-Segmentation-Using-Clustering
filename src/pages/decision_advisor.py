@@ -268,17 +268,30 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
         st.markdown(f"#### Map of {sel_cat} in {selected_city}")
         cat_geo = target_df[(target_df['place type'] == sel_cat) & target_df['latitude'].notnull()]
         if not cat_geo.empty:
-            fig_map = px.scatter_mapbox(
-                cat_geo,
-                lat="latitude",
-                lon="longitude",
-                hover_name="place",
-                hover_data=["avg_rating", "sample_review_count", "cluster_name"],
-                color="cluster_name",
-                zoom=10,
-                height=450
-            )
-            fig_map.update_layout(mapbox_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
+            if hasattr(px, 'scatter_map'):
+                fig_map = px.scatter_map(
+                    cat_geo,
+                    lat="latitude",
+                    lon="longitude",
+                    hover_name="place",
+                    hover_data=["avg_rating", "sample_review_count", "cluster_name"],
+                    color="cluster_name",
+                    zoom=10,
+                    height=450
+                )
+                fig_map.update_layout(map_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
+            else:
+                fig_map = px.scatter_mapbox(
+                    cat_geo,
+                    lat="latitude",
+                    lon="longitude",
+                    hover_name="place",
+                    hover_data=["avg_rating", "sample_review_count", "cluster_name"],
+                    color="cluster_name",
+                    zoom=10,
+                    height=450
+                )
+                fig_map.update_layout(mapbox_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
             st.plotly_chart(fig_map, use_container_width=True)
         else:
             st.info("No spatial coordinates available for this category.")

@@ -192,16 +192,28 @@ def render(data_bundle):
                 'avg_rating': biz_row['avg_rating'],
                 'sample_review_count': biz_row['sample_review_count']
             }])
-            fig_pin = px.scatter_mapbox(
-                pin_df,
-                lat="latitude",
-                lon="longitude",
-                hover_name="place",
-                hover_data=["avg_rating", "sample_review_count", "cluster_name"],
-                zoom=13,
-                height=420
-            )
-            fig_pin.update_layout(mapbox_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
+            if hasattr(px, 'scatter_map'):
+                fig_pin = px.scatter_map(
+                    pin_df,
+                    lat="latitude",
+                    lon="longitude",
+                    hover_name="place",
+                    hover_data=["avg_rating", "sample_review_count", "cluster_name"],
+                    zoom=13,
+                    height=420
+                )
+                fig_pin.update_layout(map_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
+            else:
+                fig_pin = px.scatter_mapbox(
+                    pin_df,
+                    lat="latitude",
+                    lon="longitude",
+                    hover_name="place",
+                    hover_data=["avg_rating", "sample_review_count", "cluster_name"],
+                    zoom=13,
+                    height=420
+                )
+                fig_pin.update_layout(mapbox_style="carto-darkmatter", margin=dict(l=0, r=0, t=0, b=0))
             fig_pin.update_traces(marker=dict(size=14, color=seg_color))
             st.plotly_chart(fig_pin, use_container_width=True)
         else:
