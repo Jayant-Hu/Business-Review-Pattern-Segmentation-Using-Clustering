@@ -10,13 +10,16 @@ venv/
 ENV/
 
 # Large datasets & raw data (>100MB exceeds GitHub limits)
-data/
-dataset/raw/combined2_dataset.csv.zip
-dataset/raw/*.csv
+/data/
+/dataset/raw/combined2_dataset.csv.zip
+/dataset/raw/*.csv
+
+# Explicitly ensure src/data package is never ignored
+!src/data/**
 
 # Geocode cache & persistent local logs
 logs/
-data/geo_cache/
+/data/geo_cache/
 
 # Streamlit secrets & local configurations
 .streamlit/secrets.toml
