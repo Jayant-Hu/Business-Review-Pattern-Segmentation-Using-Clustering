@@ -1,57 +1,44 @@
 """
-Global Navigation, Grouped Sidebar Menu, and Persistent Cross-Page Filter Ribbon.
+Restrained Grouped Navigation and Global Filter Ribbon.
+Features editorial brand block, signal red active markers, and cross-page state filtering.
 """
 from typing import Dict, Any, Tuple, Optional
 import pandas as pd
 import streamlit as st
 
 PAGE_GROUPS = {
-    "🧭 Explore": [
-        "Home & Overview",
+    "Overview": [
+        "Home & Overview"
+    ],
+    "Explore": [
         "Business Detail & Search",
         "Map Explorer"
     ],
-    "🎯 Decide": [
+    "Decision Engine": [
         "Business Decision Advisor",
         "Strategic Recommendations"
     ],
-    "🔬 Analyze": [
-        "Dataset Analysis",
-        "Review Analytics",
+    "Clustering Models": [
         "K-Means Clustering",
         "Hierarchical Clustering",
         "PCA Visualization",
-        "Evaluation Metrics",
-        "Business Segmentation"
+        "Evaluation Metrics"
     ],
-    "📚 Methodology": [
+    "Data & Segmentation": [
+        "Business Segmentation",
+        "Dataset Analysis",
+        "Review Analytics"
+    ],
+    "Methodology": [
         "Methodology & Model Card",
         "Glossary of Terms"
     ]
 }
 
-PAGE_ICONS = {
-    "Home & Overview": "⚡",
-    "Business Detail & Search": "🔍",
-    "Map Explorer": "🗺️",
-    "Business Decision Advisor": "🎯",
-    "Strategic Recommendations": "💡",
-    "Dataset Analysis": "📊",
-    "Review Analytics": "💬",
-    "K-Means Clustering": "🔷",
-    "Hierarchical Clustering": "🌳",
-    "PCA Visualization": "📈",
-    "Evaluation Metrics": "📏",
-    "Business Segmentation": "👥",
-    "Methodology & Model Card": "📋",
-    "Glossary of Terms": "📖"
-}
-
 def render_sidebar_navigation() -> Tuple[str, str]:
     """
-    Renders grouped sidebar navigation with category hierarchy, live system stats,
-    and a Light/Dark theme toggle.
-    Returns: (selected_page_name, active_group_name)
+    Renders grouped sidebar navigation with active signal red indicator
+    and theme toggle.
     """
     if "current_page" not in st.session_state:
         st.session_state["current_page"] = "Home & Overview"
@@ -59,69 +46,59 @@ def render_sidebar_navigation() -> Tuple[str, str]:
         st.session_state["ui_theme"] = "dark"
 
     with st.sidebar:
-        # Header Brand
+        # Editorial Brand Block
         st.markdown("""
-            <div style="padding: 10px 4px 16px 4px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); display:flex; align-items:center; justify-content:center; color:white; font-size:20px; font-weight:bold; box-shadow:0 4px 12px rgba(59,130,246,0.3);">⚡</div>
-                    <div>
-                        <div style="font-weight:800; font-size:17.5px; color:var(--text-main); letter-spacing:-0.02em;">UrbanPulse AI</div>
-                        <div style="font-size:11px; color:var(--text-muted); font-weight:600;">Commercial Intelligence Platform</div>
-                    </div>
+            <div style="padding: 16px 4px 20px 4px;">
+                <div style="font-family:var(--font-serif); font-size:20px; font-weight:700; color:var(--text-primary); letter-spacing:-0.03em;">
+                    UrbanPulse<span style="color:var(--red); font-size:24px; line-height:0;">.</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono); margin-top:3px; letter-spacing:0.04em;">
+                    Review Pattern Segmentation
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-        # Light / Dark theme toggle
-        t_col1, t_col2 = st.columns([0.6, 0.4])
-        with t_col1:
-            st.caption("Display Mode")
-        with t_col2:
-            is_light = st.toggle("☀️ Light", value=(st.session_state["ui_theme"] == "light"), key="theme_toggle")
+        # Light / Dark theme switch
+        t_c1, t_c2 = st.columns([0.65, 0.35])
+        with t_c1:
+            st.caption("Theme")
+        with t_c2:
+            is_light = st.toggle("Light", value=(st.session_state["ui_theme"] == "light"), key="nav_theme_toggle")
             new_theme = "light" if is_light else "dark"
             if new_theme != st.session_state["ui_theme"]:
                 st.session_state["ui_theme"] = new_theme
                 st.rerun()
 
-        st.markdown("<hr style='margin:10px 0; border-color:var(--border-subtle);'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border:0; border-top:1px solid var(--border); margin:12px 0 16px 0;'>", unsafe_allow_html=True)
 
-        # Flat page selection with group headers for clean UX
+        # Flattened page list for selection
         all_pages = []
-        for group, pages in PAGE_GROUPS.items():
-            all_pages.extend(pages)
-
-        # Determine current index
-        curr_page = st.session_state["current_page"]
-        default_idx = all_pages.index(curr_page) if curr_page in all_pages else 0
-
-        # Group Selector & Radio Navigation
-        formatted_options = []
         page_to_group = {}
         for group, pages in PAGE_GROUPS.items():
             for p in pages:
-                icon = PAGE_ICONS.get(p, "•")
-                formatted_options.append(f"{icon} {p}")
+                all_pages.append(p)
                 page_to_group[p] = group
 
-        raw_selected = st.radio(
-            "Navigation",
-            options=formatted_options,
+        curr_page = st.session_state["current_page"]
+        default_idx = all_pages.index(curr_page) if curr_page in all_pages else 0
+
+        # Render styled radio navigation
+        st.markdown("<div class='nav-group-header'>Navigation Modules</div>", unsafe_allow_html=True)
+        selected_page = st.radio(
+            "Navigation Modules",
+            options=all_pages,
             index=default_idx,
             label_visibility="collapsed"
         )
-        selected_page = raw_selected.split(" ", 1)[1] if " " in raw_selected else raw_selected
         st.session_state["current_page"] = selected_page
-        active_group = page_to_group.get(selected_page, "Explore")
+        active_group = page_to_group.get(selected_page, "Overview")
 
-        st.markdown("<hr style='margin:14px 0 10px 0; border-color:var(--border-subtle);'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border:0; border-top:1px solid var(--border); margin:18px 0 14px 0;'>", unsafe_allow_html=True)
 
     return selected_page, active_group
 
 def render_global_filter_bar(biz_df: Optional[pd.DataFrame]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-    """
-    Renders an expandable persistent filter bar at the top of pages.
-    Persists selections across session state and returns filtered slice of biz_df.
-    """
+    """Persistent filter bar with minimal hairline styling and session state preservation."""
     if "global_filters" not in st.session_state:
         st.session_state["global_filters"] = {
             "city": "All Cities",
@@ -131,33 +108,31 @@ def render_global_filter_bar(biz_df: Optional[pd.DataFrame]) -> Tuple[pd.DataFra
         }
 
     gf = st.session_state["global_filters"]
-
     if biz_df is None or biz_df.empty:
         return biz_df, gf
 
-    # Extract filter choices
     cities = ["All Cities"] + sorted([c for c in biz_df['city'].dropna().unique() if c != 'Unknown'])
     categories = ["All Categories"] + sorted([c for c in biz_df['place type'].dropna().unique()])
     segments = ["All Segments"] + sorted([c for c in biz_df['cluster_name'].dropna().unique() if c])
 
-    with st.expander(f"🌐 **Global Data Filter** (Active: {gf['city']}, {gf['category']}, {gf['segment']})", expanded=False):
+    with st.expander(f"Data Filter: {gf['city']} • {gf['category']} • {gf['segment']}", expanded=False):
         c1, c2, c3, c4, c5 = st.columns([0.25, 0.25, 0.25, 0.15, 0.1])
         with c1:
-            city_idx = cities.index(gf["city"]) if gf["city"] in cities else 0
-            sel_city = st.selectbox("Location / City", cities, index=city_idx, key="gf_city")
+            c_idx = cities.index(gf["city"]) if gf["city"] in cities else 0
+            sel_city = st.selectbox("Location", cities, index=c_idx, key="gf_city")
         with c2:
             cat_idx = categories.index(gf["category"]) if gf["category"] in categories else 0
             sel_cat = st.selectbox("Category", categories, index=cat_idx, key="gf_cat")
         with c3:
-            seg_idx = segments.index(gf["segment"]) if gf["segment"] in segments else 0
-            sel_seg = st.selectbox("Assigned Segment", segments, index=seg_idx, key="gf_seg")
+            s_idx = segments.index(gf["segment"]) if gf["segment"] in segments else 0
+            sel_seg = st.selectbox("Segment", segments, index=s_idx, key="gf_seg")
         with c4:
             max_rev = int(biz_df['sample_review_count'].max()) if 'sample_review_count' in biz_df.columns else 500
             sel_min_rev = st.number_input("Min Reviews", min_value=1, max_value=max(10, max_rev), value=gf["min_reviews"], key="gf_min_rev")
         with c5:
             st.write("")
             st.write("")
-            if st.button("↺ Reset", key="gf_reset", use_container_width=True):
+            if st.button("Reset", key="gf_reset_btn", use_container_width=True):
                 st.session_state["global_filters"] = {
                     "city": "All Cities",
                     "category": "All Categories",
@@ -166,7 +141,6 @@ def render_global_filter_bar(biz_df: Optional[pd.DataFrame]) -> Tuple[pd.DataFra
                 }
                 st.rerun()
 
-        # Update session state
         st.session_state["global_filters"] = {
             "city": sel_city,
             "category": sel_cat,
@@ -175,7 +149,6 @@ def render_global_filter_bar(biz_df: Optional[pd.DataFrame]) -> Tuple[pd.DataFra
         }
         gf = st.session_state["global_filters"]
 
-    # Apply filters to business dataframe
     filtered_df = biz_df.copy()
     if gf["city"] != "All Cities":
         filtered_df = filtered_df[filtered_df['city'] == gf["city"]]

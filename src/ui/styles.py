@@ -1,360 +1,344 @@
 """
-Centralized UI Styling, CSS rules, and Design System Tokens.
-Supports Dark Navy SaaS theme and Modern Light theme with responsive variables.
+Centralized CSS Stylesheet for Charcoal, Silver & Signal Red Identity.
+Zero hard-coded hex codes: references design tokens via CSS variables.
 """
-
-# Color Palette Tokens
-THEME_DARK = {
-    "--bg-base": "#0B1120",
-    "--bg-panel": "rgba(17, 24, 39, 0.75)",
-    "--bg-panel-solid": "#111827",
-    "--bg-card": "linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%)",
-    "--bg-card-hover": "rgba(30, 41, 59, 0.9)",
-    "--border-subtle": "rgba(255, 255, 255, 0.08)",
-    "--border-focus": "rgba(96, 165, 250, 0.4)",
-    "--text-main": "#F8FAFC",
-    "--text-muted": "#94A3B8",
-    "--text-subtle": "#64748B",
-    "--primary-blue": "#3B82F6",
-    "--primary-blue-glow": "rgba(59, 130, 246, 0.2)",
-    "--sidebar-bg": "#0D1527",
-    "--badge-bg": "rgba(59, 130, 246, 0.15)",
-    "--badge-border": "rgba(59, 130, 246, 0.3)",
-    "--badge-text": "#60A5FA",
-    "--card-shadow": "0 10px 30px rgba(0, 0, 0, 0.35)",
-}
-
-THEME_LIGHT = {
-    "--bg-base": "#F8FAFC",
-    "--bg-panel": "rgba(255, 255, 255, 0.9)",
-    "--bg-panel-solid": "#FFFFFF",
-    "--bg-card": "linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%)",
-    "--bg-card-hover": "#F8FAFC",
-    "--border-subtle": "rgba(15, 23, 42, 0.1)",
-    "--border-focus": "rgba(37, 99, 235, 0.5)",
-    "--text-main": "#0F172A",
-    "--text-muted": "#475569",
-    "--text-subtle": "#94A3B8",
-    "--primary-blue": "#2563EB",
-    "--primary-blue-glow": "rgba(37, 99, 235, 0.15)",
-    "--sidebar-bg": "#F1F5F9",
-    "--badge-bg": "rgba(37, 99, 235, 0.1)",
-    "--badge-border": "rgba(37, 99, 235, 0.25)",
-    "--badge-text": "#1D4ED8",
-    "--card-shadow": "0 4px 20px rgba(0, 0, 0, 0.08)",
-}
-
-SEGMENT_COLORS = {
-    "High-Satisfaction Top Tier": "#10B981",       # Emerald Green
-    "Moderate / Mixed Feedback": "#3B82F6",        # Royal Blue
-    "High-Engagement Detailed Feedback": "#8B5CF6", # Violet
-    "Critical Intervention / At-Risk": "#EF4444"   # Crimson
-}
-
-OPPORTUNITY_BADGES = {
-    "Proven Market": {"bg": "rgba(16, 185, 129, 0.15)", "border": "rgba(16, 185, 129, 0.4)", "text": "#10B981"},
-    "Underserved Gap": {"bg": "rgba(59, 130, 246, 0.15)", "border": "rgba(59, 130, 246, 0.4)", "text": "#60A5FA"},
-    "Quality Gap": {"bg": "rgba(245, 158, 11, 0.15)", "border": "rgba(245, 158, 11, 0.4)", "text": "#F59E0B"},
-    "Saturated": {"bg": "rgba(139, 92, 246, 0.15)", "border": "rgba(139, 92, 246, 0.4)", "text": "#C084FC"},
-    "Weak Demand": {"bg": "rgba(239, 68, 68, 0.15)", "border": "rgba(239, 68, 68, 0.4)", "text": "#EF4444"},
-}
+from src.ui.theme import THEME_DARK, THEME_LIGHT, SEGMENT_COLORS
 
 def get_theme_css(theme_mode: str = "dark") -> str:
-    """Generates dynamic CSS string with root custom properties for the selected theme."""
+    """Generates global stylesheet using strict CSS custom properties."""
     tokens = THEME_DARK if theme_mode == "dark" else THEME_LIGHT
     css_vars = "\n".join([f"        {k}: {v};" for k, v in tokens.items()])
 
     return f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,400&display=swap');
 
     :root {{
 {css_vars}
+        --font-serif: 'Source Serif 4', Georgia, serif;
+        --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: 'IBM Plex Mono', monospace;
     }}
 
     html, body, [class*="css"] {{
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: var(--text-main);
+        font-family: var(--font-sans);
+        color: var(--text-primary);
+        font-size: 14.5px;
+        line-height: 1.55;
     }}
 
     .stApp {{
-        background-color: var(--bg-base);
+        background-color: var(--bg);
     }}
 
-    .main {{
-        background: radial-gradient(circle at 10% 20%, rgba(17, 24, 39, 0.6) 0%, var(--bg-base) 90%);
+    /* Global Headings: Serif, sentence case, tight tracking, no glow */
+    h1, h2, h3, h4, h5, h6 {{
+        font-family: var(--font-serif) !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+        letter-spacing: -0.015em;
     }}
 
-    /* Hero header */
-    .saas-header {{
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
-        border-radius: 16px;
-        padding: 24px 30px;
+    /* Header Component */
+    .terminal-header {{
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px 28px;
         margin-bottom: 20px;
-        box-shadow: var(--card-shadow);
-        backdrop-filter: blur(12px);
     }}
 
-    .breadcrumbs {{
+    .terminal-eyebrow {{
+        font-family: var(--font-mono);
         font-size: 11px;
-        color: var(--text-subtle);
-        font-weight: 600;
+        font-weight: 500;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 8px;
-    }}
-    .breadcrumbs span.current {{
-        color: var(--badge-text);
-    }}
-
-    .saas-badge {{
-        display: inline-block;
-        padding: 4px 12px;
-        background: var(--badge-bg);
-        border: 1px solid var(--badge-border);
-        border-radius: 20px;
-        color: var(--badge-text);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        color: var(--silver-soft);
         margin-bottom: 8px;
     }}
 
-    .saas-title {{
-        color: var(--text-main);
+    .terminal-title {{
+        font-family: var(--font-serif);
         font-size: 26px;
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: -0.02em;
+        color: var(--text-primary);
         margin: 0;
+        line-height: 1.25;
     }}
 
-    .saas-subtitle {{
-        color: var(--text-muted);
+    .terminal-subtitle {{
         font-size: 13.5px;
+        color: var(--text-secondary);
         margin-top: 6px;
         margin-bottom: 0;
         line-height: 1.5;
     }}
 
-    /* Global Filter Ribbon */
-    .global-filter-ribbon {{
-        background: var(--bg-panel);
-        border: 1px solid var(--border-subtle);
-        border-radius: 12px;
-        padding: 12px 18px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    .terminal-rule {{
+        border: 0;
+        border-top: 1px solid var(--border);
+        margin: 16px 0 0 0;
     }}
 
-    /* Metric Cards */
-    .metric-card {{
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
-        border-radius: 14px;
+    /* Breadcrumbs */
+    .terminal-breadcrumbs {{
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+    }}
+    .terminal-breadcrumbs span.current {{
+        color: var(--text-primary);
+        font-weight: 600;
+    }}
+
+    /* Metric KPI Card */
+    .kpi-card {{
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 8px;
         padding: 18px 20px;
-        box-shadow: var(--card-shadow);
-        transition: transform 0.2s ease, border-color 0.2s ease;
-        position: relative;
         height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        transition: border-color 150ms ease;
     }}
-    .metric-card:hover {{
-        transform: translateY(-2px);
-        border-color: var(--border-focus);
+    .kpi-card:hover {{
+        border-color: var(--silver-soft);
     }}
-    .metric-card-top {{
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 8px;
-    }}
-    .metric-label {{
-        color: var(--text-muted);
+    .kpi-label {{
         font-size: 11.5px;
-        font-weight: 700;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
     }}
-    .metric-icon {{
-        font-size: 18px;
-        opacity: 0.85;
-    }}
-    .metric-value {{
-        color: var(--text-main);
-        font-size: 26px;
-        font-weight: 800;
+    .kpi-value {{
+        font-family: var(--font-mono);
+        font-size: 27px;
+        font-weight: 600;
+        color: var(--text-primary);
         letter-spacing: -0.02em;
         line-height: 1.1;
         margin-bottom: 6px;
     }}
-    .metric-delta {{
-        font-size: 11.5px;
-        color: #10B981;
+    .kpi-delta {{
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
         display: flex;
         align-items: center;
         gap: 4px;
-        font-weight: 600;
     }}
-    .metric-delta.negative {{
-        color: #EF4444;
+    .kpi-delta.signal-alert {{
+        color: var(--red);
+        font-weight: 500;
     }}
-    .metric-tooltip {{
+    .kpi-tooltip {{
         font-size: 10.5px;
-        color: var(--text-subtle);
+        color: var(--text-muted);
         margin-top: 4px;
     }}
 
-    /* Panels & Containers */
-    .saas-panel {{
-        background: var(--bg-panel);
-        border: 1px solid var(--border-subtle);
-        border-radius: 14px;
-        padding: 22px;
+    /* Panel Card */
+    .terminal-panel {{
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
         margin-bottom: 20px;
-        box-shadow: var(--card-shadow);
     }}
 
-    .panel-header {{
-        font-size: 15.5px;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 14px;
+    .panel-title-bar {{
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
     }}
-
-    .section-title {{
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--text-main);
-        letter-spacing: -0.01em;
-        margin-top: 10px;
-        margin-bottom: 4px;
-    }}
-    .section-subtitle {{
-        font-size: 12.5px;
-        color: var(--text-muted);
-        margin-bottom: 14px;
-    }}
-
-    /* Callout & Insights */
-    .info-callout {{
-        background: rgba(59, 130, 246, 0.08);
-        border-left: 4px solid var(--primary-blue);
-        border-radius: 0 10px 10px 0;
-        padding: 12px 16px;
-        margin: 12px 0 18px 0;
-        font-size: 12.5px;
-        color: var(--text-main);
-        line-height: 1.5;
-    }}
-    .info-callout.warning {{
-        background: rgba(245, 158, 11, 0.08);
-        border-left-color: #F59E0B;
-    }}
-    .info-callout.success {{
-        background: rgba(16, 185, 129, 0.08);
-        border-left-color: #10B981;
-    }}
-    .info-callout.alert {{
-        background: rgba(239, 68, 68, 0.08);
-        border-left-color: #EF4444;
+    .panel-title {{
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
     }}
 
     /* Chart Container Card */
-    .chart-card {{
-        background: var(--bg-card);
-        border: 1px solid var(--border-subtle);
-        border-radius: 14px;
-        padding: 18px 20px 14px 20px;
+    .chart-container {{
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
         margin-bottom: 20px;
-        box-shadow: var(--card-shadow);
     }}
     .chart-header {{
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
-    }}
-    .chart-title {{
-        font-size: 15px;
-        font-weight: 700;
-        color: var(--text-main);
-    }}
-    .chart-insight {{
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border-subtle);
-        border-radius: 8px;
-        padding: 8px 12px;
-        margin-top: 10px;
-        font-size: 11.5px;
-        color: var(--text-muted);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }}
-    .chart-insight b {{
-        color: var(--text-main);
-    }}
-
-    /* Empty state card */
-    .empty-state-card {{
-        background: var(--bg-card);
-        border: 1px dashed var(--border-subtle);
-        border-radius: 14px;
-        padding: 40px 24px;
-        text-align: center;
-        color: var(--text-muted);
-        margin: 20px 0;
-    }}
-    .empty-state-icon {{
-        font-size: 36px;
         margin-bottom: 12px;
     }}
-    .empty-state-title {{
-        font-size: 17px;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 6px;
+    .chart-title {{
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }}
+    .chart-insight {{
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }}
+    .chart-insight span.prefix {{
+        font-family: var(--font-mono);
+        color: var(--silver);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.05em;
     }}
 
-    /* Quick Start & Onboarding Cards */
-    .onboarding-card {{
-        background: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(15, 23, 42, 0.6) 100%);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 14px;
-        padding: 18px 22px;
-        margin-bottom: 20px;
+    /* Callouts */
+    .callout {{
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--silver);
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin: 14px 0;
+        font-size: 13px;
+        color: var(--text-primary);
+        line-height: 1.5;
+    }}
+    .callout.signal {{
+        border-left-color: var(--red);
+        background: var(--red-soft);
+    }}
+    .callout.muted {{
+        border-left-color: var(--border);
+        color: var(--text-secondary);
+    }}
+
+    /* Chips & Badges */
+    .chip {{
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+        background: var(--surface-2);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }}
+    .chip.signal {{
+        background: var(--red-soft);
+        color: var(--red);
+        border-color: rgba(229, 56, 59, 0.35);
+    }}
+
+    /* Empty States */
+    .empty-card {{
+        background: var(--surface-1);
+        border: 1px dashed var(--border);
+        border-radius: 8px;
+        padding: 36px 24px;
+        text-align: center;
+        color: var(--text-secondary);
+        margin: 20px 0;
+    }}
+    .empty-card-title {{
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
     }}
 
     /* Sidebar Navigation */
     section[data-testid="stSidebar"] {{
-        background-color: var(--sidebar-bg) !important;
-        border-right: 1px solid var(--border-subtle);
+        background-color: var(--surface-1) !important;
+        border-right: 1px solid var(--border);
+    }}
+    
+    /* Navigation Link & Active Indicator */
+    .nav-group-header {{
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+        margin: 14px 0 6px 4px;
     }}
 
-    /* Footer styling */
-    .saas-footer {{
-        border-top: 1px solid var(--border-subtle);
-        padding-top: 24px;
+    /* Streamlit Global Button Styling */
+    div.stButton > button {{
+        font-family: var(--font-sans);
+        font-weight: 500;
+        font-size: 13.5px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background-color: var(--surface-2);
+        color: var(--text-primary);
+        padding: 6px 14px;
+        transition: background-color 150ms ease, border-color 150ms ease;
+    }}
+    div.stButton > button:hover {{
+        background-color: var(--surface-1);
+        border-color: var(--silver-soft);
+        color: var(--text-primary);
+    }}
+    div.stButton > button:focus {{
+        outline: 2px solid var(--focus-ring);
+    }}
+    div.stButton > button[kind="primary"] {{
+        background-color: var(--red) !important;
+        border-color: var(--red) !important;
+        color: #FFFFFF !important;
+    }}
+    div.stButton > button[kind="primary"]:hover {{
+        background-color: var(--red-hover) !important;
+        border-color: var(--red-hover) !important;
+    }}
+
+    /* Global Filter Ribbon */
+    .filter-ribbon {{
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 16px;
+        margin-bottom: 20px;
+    }}
+
+    /* Footer */
+    .terminal-footer {{
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
         margin-top: 48px;
-        padding-bottom: 24px;
-        font-size: 11.5px;
-        color: var(--text-subtle);
+        padding-bottom: 28px;
+        font-size: 11px;
+        color: var(--text-muted);
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
     }}
 </style>
 """
 
-# Default backward-compatible stylesheet
 CUSTOM_CSS = get_theme_css("dark")

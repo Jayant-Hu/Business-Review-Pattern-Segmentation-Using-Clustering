@@ -1,5 +1,5 @@
 """
-Strategic Civic & Commercial Recommendations Page.
+Strategic Civic & Commercial Recommendations.
 Actionable operational roadmaps derived dynamically from empirical cluster roles.
 """
 import streamlit as st
@@ -7,17 +7,16 @@ from src.ui.components import (
     render_header,
     render_empty_state,
     render_footer,
-    render_section_header,
-    render_badge
+    render_section_header
 )
-from src.ui.styles import SEGMENT_COLORS
+from src.ui.theme import SEGMENT_COLORS
 
 def render(data_bundle):
     render_header(
-        "City-Service Strategic Recommendations",
-        "Targeted urban policy interventions, licensing audits, and tourism showcases derived from cluster patterns.",
-        badge="CIVIC DECISION SUPPORT",
-        breadcrumbs=["Platform", "Decide", "Strategic Recommendations"]
+        title="Civic Policy & Commercial Strategy Directives",
+        subtitle="Targeted urban economic interventions, licensing audits, and tourism showcases derived from cluster patterns.",
+        eyebrow="CIVIC DECISION SUPPORT",
+        breadcrumbs=["Platform", "Decision Engine", "Strategic Recommendations"]
     )
 
     biz_df = data_bundle.get('biz')
@@ -25,9 +24,9 @@ def render(data_bundle):
 
     if biz_df is None or prof_df is None:
         render_empty_state(
-            "Segmentation Results Not Loaded",
-            "Run the pipeline to generate cluster profiles.",
-            action_command="python scripts/run_pipeline.py"
+            title="Segmentation Results Not Loaded",
+            message="Run the pipeline to generate cluster profiles.",
+            action_command="python scripts/run_pipeline.py --step cluster"
         )
         render_footer()
         return
@@ -39,34 +38,38 @@ def render(data_bundle):
     detailed_count = counts.get('High-Engagement Detailed Feedback', 0)
     at_risk_count = counts.get('Critical Intervention / At-Risk', 0)
 
+    render_section_header("Segment Action Framework", subtitle="Operational directives tailored to identified commercial performance profiles")
+
     rec1, rec2 = st.columns(2)
     with rec1:
         st.markdown(f"""
-            <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['High-Satisfaction Top Tier']};">
-                <div style="font-weight:700; color:{SEGMENT_COLORS['High-Satisfaction Top Tier']}; font-size:15px; margin-bottom:8px;">
-                    🏆 High-Satisfaction Top Tier ({top_tier_count:,} Establishments)
+            <div class="terminal-panel" style="border-top: 3px solid {SEGMENT_COLORS['High-Satisfaction Top Tier']};">
+                <div class="panel-title-bar">
+                    <h3 class="panel-title">High-Satisfaction Top Tier</h3>
+                    <span class="chip">{top_tier_count:,} Venues</span>
                 </div>
-                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
-                    <b>Characteristics:</b> Benchmark customer satisfaction, near-zero negative sentiment, consistent high ratings.<br><br>
-                    <b>Strategic Civic Actions:</b>
+                <div style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+                    <b>Empirical Profile:</b> Benchmark customer satisfaction (4.57 avg rating), near-zero negative sentiment (0.1%), highly consistent consumer experience.<br><br>
+                    <b>Strategic Policy Directives:</b>
                     <ul>
-                        <li>Feature in official Municipal Tourism Guides and city cultural showcases.</li>
-                        <li>Engage business owners as mentors in local commerce mentorship programs.</li>
-                        <li>Fast-track annual permit and outdoor seating approvals.</li>
+                        <li><b>Municipal Tourism Integration:</b> Feature in official city guides, cultural itineraries, and high-visibility municipal promotions.</li>
+                        <li><b>Merchant Leadership:</b> Appoint venue leadership as peer advisors in local chamber of commerce modernization programs.</li>
+                        <li><b>Regulatory Streamlining:</b> Fast-track annual permit renewals, outdoor seating allowances, and event licensing.</li>
                     </ul>
                 </div>
             </div>
             
-            <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['High-Engagement Detailed Feedback']};">
-                <div style="font-weight:700; color:{SEGMENT_COLORS['High-Engagement Detailed Feedback']}; font-size:15px; margin-bottom:8px;">
-                    💬 High-Engagement Detailed Feedback ({detailed_count:,} Establishments)
+            <div class="terminal-panel" style="border-top: 3px solid {SEGMENT_COLORS['High-Engagement Detailed Feedback']};">
+                <div class="panel-title-bar">
+                    <h3 class="panel-title">High-Engagement Detailed Feedback</h3>
+                    <span class="chip">{detailed_count:,} Venues</span>
                 </div>
-                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
-                    <b>Characteristics:</b> Highly vocal customer base, high frequency of service and food mentions, long descriptive reviews.<br><br>
-                    <b>Strategic Civic Actions:</b>
+                <div style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+                    <b>Empirical Profile:</b> Highly articulate customer base, elevated service and food feedback rates, long descriptive reviews, moderate rating variance.<br><br>
+                    <b>Strategic Policy Directives:</b>
                     <ul>
-                        <li>Target for operational benchmarking and culinary excellence certifications.</li>
-                        <li>Offer digital commerce grants to capitalize on highly engaged customer base.</li>
+                        <li><b>Operational Benchmarking:</b> Target for hospitality certifications and operational performance diagnostics.</li>
+                        <li><b>Commerce Grants:</b> Provide digital enablement and customer retention grants to capitalize on active community engagement.</li>
                     </ul>
                 </div>
             </div>
@@ -74,31 +77,33 @@ def render(data_bundle):
 
     with rec2:
         st.markdown(f"""
-            <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['Moderate / Mixed Feedback']};">
-                <div style="font-weight:700; color:{SEGMENT_COLORS['Moderate / Mixed Feedback']}; font-size:15px; margin-bottom:8px;">
-                    ⚖️ Moderate / Mixed Feedback ({moderate_count:,} Establishments)
+            <div class="terminal-panel" style="border-top: 3px solid {SEGMENT_COLORS['Moderate / Mixed Feedback']};">
+                <div class="panel-title-bar">
+                    <h3 class="panel-title">Moderate / Mixed Feedback</h3>
+                    <span class="chip">{moderate_count:,} Venues</span>
                 </div>
-                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
-                    <b>Characteristics:</b> Satisfactory ratings with brief reviews and lower review volume.<br><br>
-                    <b>Strategic Civic Actions:</b>
+                <div style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+                    <b>Empirical Profile:</b> Satisfactory ratings (4.33 avg rating) but lower review depth and sparse aspect feedback.<br><br>
+                    <b>Strategic Policy Directives:</b>
                     <ul>
-                        <li>Deploy Chamber of Commerce digital marketing and feedback collection workshops.</li>
-                        <li>Encourage local neighborhood promotional campaigns to stimulate repeat foot traffic.</li>
+                        <li><b>Consumer Outreach:</b> Deploy chamber of commerce digital feedback collection workshops to elevate community visibility.</li>
+                        <li><b>Corridor Marketing:</b> Sponsor localized neighborhood retail campaigns to stimulate repeat footfall.</li>
                     </ul>
                 </div>
             </div>
 
-            <div class="saas-panel" style="border-left: 4px solid {SEGMENT_COLORS['Critical Intervention / At-Risk']};">
-                <div style="font-weight:700; color:{SEGMENT_COLORS['Critical Intervention / At-Risk']}; font-size:15px; margin-bottom:8px;">
-                    🚨 Critical Intervention / At-Risk ({at_risk_count:,} Establishments)
+            <div class="terminal-panel" style="border-top: 3px solid {SEGMENT_COLORS['Critical Intervention / At-Risk']};">
+                <div class="panel-title-bar">
+                    <h3 class="panel-title" style="color:var(--red);">Critical Intervention / At-Risk</h3>
+                    <span class="chip signal">{at_risk_count:,} Venues</span>
                 </div>
-                <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
-                    <b>Characteristics:</b> High rate of customer complaints and 1-2 star reviews indicating operational friction.<br><br>
-                    <b>Strategic Civic Actions:</b>
+                <div style="font-size:13px; color:var(--text-secondary); line-height:1.6;">
+                    <b>Empirical Profile:</b> High customer friction (45.6% negative sentiment, 2.33 avg rating), widespread consumer dissatisfaction signals.<br><br>
+                    <b>Strategic Policy Directives:</b>
                     <ul>
-                        <li>Conduct proactive health, sanitation, and licensing compliance audits.</li>
-                        <li>Offer municipal employee training and service turnaround subsidies prior to license renewals.</li>
-                        <li>Establish confidential diagnostic feedback sessions between inspectors and managers.</li>
+                        <li><b>Compliance Auditing:</b> Conduct prioritized health, sanitation, and licensing compliance audits.</li>
+                        <li><b>Workforce Subsidies:</b> Mandate employee training and operational turnaround programs prior to annual license renewals.</li>
+                        <li><b>Confidential Diagnostics:</b> Establish structured feedback sessions between commercial inspectors and general managers.</li>
                     </ul>
                 </div>
             </div>

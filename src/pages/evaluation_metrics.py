@@ -1,5 +1,5 @@
 """
-Quantitative Model Evaluation & Stability Page.
+Quantitative Model Evaluation & Stability.
 Provides Silhouette, Davies-Bouldin, and Adjusted Rand Index across initialization seeds.
 """
 import streamlit as st
@@ -12,14 +12,14 @@ from src.ui.components import (
     render_section_header,
     render_paginated_table
 )
-from src.ui.theme import get_plotly_theme
+from src.ui.theme import get_plotly_theme, COLOR_SILVER, COLOR_RED
 
 def render(data_bundle):
     render_header(
-        "Quantitative Model Evaluation & Stability",
-        "Mathematical validation: WCSS Inertia, Silhouette Cohesion, Davies-Bouldin Index, and Seed Stability.",
-        badge="ACADEMIC RIGOR",
-        breadcrumbs=["Platform", "Analyze", "Evaluation Metrics"]
+        title="Quantitative Evaluation & Cluster Stability",
+        subtitle="Mathematical benchmarks: WCSS Inertia, Silhouette Cohesion, Davies-Bouldin Index, and Random Seed Stability.",
+        eyebrow="ACADEMIC RIGOR",
+        breadcrumbs=["Platform", "Clustering Models", "Evaluation Metrics"]
     )
 
     eval_df = data_bundle.get('eval')
@@ -27,9 +27,9 @@ def render(data_bundle):
 
     if eval_df is None or stab_df is None:
         render_empty_state(
-            "Evaluation Metrics Not Loaded",
-            "Run pipeline to generate model metrics and stability results.",
-            action_command="python scripts/run_pipeline.py"
+            title="Evaluation Metrics Not Loaded",
+            message="Run pipeline to generate model metrics and stability results.",
+            action_command="python scripts/run_pipeline.py --step evaluate"
         )
         render_footer()
         return
@@ -40,15 +40,15 @@ def render(data_bundle):
             stab_df,
             x='seed_comparison',
             y='ARI',
-            color='ARI',
-            color_continuous_scale='Greens',
+            color_discrete_sequence=[COLOR_SILVER],
             range_y=[0.95, 1.0],
             text='ARI'
         )
-        fig_stab.update_layout(coloraxis_showscale=False)
+        fig_stab.update_layout(**get_plotly_theme("dark"))
+        fig_stab.update_layout(xaxis_title="Random Seed Comparison", yaxis_title="Adjusted Rand Index (ARI)")
         render_chart_container(
-            "Cluster Assignment Stability Across 5 Random Seeds",
-            fig_stab,
+            title="Cluster Assignment Stability (Adjusted Rand Index)",
+            fig=fig_stab,
             insight=f"Mean ARI of {stab_df['ARI'].mean()*100:.2f}% confirms that cluster partitions are reproducible and immune to initialization perturbations.",
             help_text="Adjusted Rand Index (ARI) evaluates consistency between two independent clustering runs. Scores above 0.90 signify exceptional cluster stability."
         )
@@ -60,17 +60,19 @@ def render(data_bundle):
             y='Davies_Bouldin',
             markers=True
         )
-        fig_db.update_traces(line_color="#EF4444", line_width=3, marker=dict(size=8))
+        fig_db.update_layout(**get_plotly_theme("dark"))
+        fig_db.update_traces(line_color=COLOR_RED, line_width=2, marker=dict(size=7))
+        fig_db.update_layout(xaxis_title="Cluster Count (K)", yaxis_title="Davies-Bouldin Index")
         render_chart_container(
-            "Davies-Bouldin Index Across K = 2..7 (Lower is Better)",
-            fig_db,
-            insight="Davies-Bouldin Index reaches an optimal minimum at K=4, indicating maximum ratio of inter-cluster separation to intra-cluster spread.",
+            title="Davies-Bouldin Index Across Candidate K (Lower is Better)",
+            fig=fig_db,
+            insight="Davies-Bouldin Index reaches an optimal inflection at K=4, indicating maximum ratio of inter-cluster separation to intra-cluster spread.",
             help_text="Davies-Bouldin measures the average similarity of each cluster to its most similar cluster. Lower values denote superior separation."
         )
 
-    render_section_header("Complete Evaluation Metric Table")
+    render_section_header("Complete Evaluation Metric Table", subtitle="Inertia, Silhouette, and Davies-Bouldin benchmarks across evaluated models")
     render_paginated_table(
-        eval_df,
+        df=eval_df,
         key_prefix="eval_summary_table",
         page_size=10,
         download_filename="evaluation_metrics_full.csv"

@@ -14,15 +14,27 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from src.ui.components import render_header, render_empty_state
-from src.ui.theme import PLOTLY_DARK_THEME
+from src.ui.components import render_header, render_empty_state, render_footer
+from src.ui.theme import (
+    PLOTLY_DARK_THEME,
+    BG_SURFACE_1,
+    BG_SURFACE_2,
+    BORDER_HAIRLINE,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    TEXT_MUTED,
+    SILVER_PRIMARY,
+    SIGNAL_RED,
+    SIGNAL_RED_SOFT,
+    ACCENT_GREEN,
+    ACCENT_BLUE
+)
 from src.services.decision_advisor import (
     HONESTY_DISCLAIMER,
     compute_ppi_score,
     extract_customer_voice,
     compute_competition_matrix,
-    calculate_breakeven_helper,
-    calculate_bayesian_rating
+    calculate_breakeven_helper
 )
 from src.services.report_generator import generate_advisor_pdf
 from src.utils.paths import settings
@@ -31,18 +43,19 @@ def render(data_bundle):
     render_header(
         "Commercial Decision Advisor & Market Opportunity Engine",
         "Empirical review-driven market sizing, Profit Potential Index (PPI) scoring, and strategic location advisory.",
-        "STRATEGIC ADVISORY"
+        "STRATEGIC ADVISORY",
+        breadcrumbs=["Platform", "Decide", "Business Advisor"]
     )
 
     # Prominent Honesty Disclaimer Banner
     st.markdown(f"""
-        <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); border-radius:10px; padding:12px 18px; margin-bottom:20px; font-size:12.5px; color:#FCA5A5;">
-            ⚖️ <b>Model Reality Notice:</b> {HONESTY_DISCLAIMER}
+        <div style="background:{SIGNAL_RED_SOFT}; border:1px solid {SIGNAL_RED}; border-left:3px solid {SIGNAL_RED}; border-radius:4px; padding:12px 18px; margin-bottom:24px; font-size:12.5px; color:{TEXT_PRIMARY}; font-family:var(--font-sans);">
+            <b style="color:{SIGNAL_RED};">Model Reality Notice:</b> {HONESTY_DISCLAIMER}
         </div>
     """, unsafe_allow_html=True)
 
-    biz_df = data_bundle['biz']
-    rev_df = data_bundle['rev']
+    biz_df = data_bundle.get('biz')
+    rev_df = data_bundle.get('rev')
 
     if biz_df is None or biz_df.empty:
         render_empty_state("Business Data Missing", "Run the pipeline to generate clustered_businesses.csv.")
@@ -51,55 +64,60 @@ def render(data_bundle):
     # Top Navigation Sub-Tabs
     sub_tab = st.radio(
         "Advisor Tools:",
-        ["1. Guided Advisor Wizard", "2. Best Business per Area Leaderboard", "3. Best Area per Category", "4. Multi-Entity Comparison Tool"],
+        ["Guided Advisor Wizard", "Best Business per Area Leaderboard", "Best Area per Category", "Multi-Entity Comparison Tool"],
         horizontal=True
     )
 
     # -------------------------------------------------------------
     # SUB-TAB 1: GUIDED ADVISOR WIZARD
     # -------------------------------------------------------------
-    if sub_tab == "1. Guided Advisor Wizard":
+    if sub_tab == "Guided Advisor Wizard":
         _render_wizard(biz_df, rev_df)
 
     # -------------------------------------------------------------
     # SUB-TAB 2: LEADERBOARD PER AREA
     # -------------------------------------------------------------
-    elif sub_tab == "2. Best Business per Area Leaderboard":
+    elif sub_tab == "Best Business per Area Leaderboard":
         _render_leaderboard(biz_df)
 
     # -------------------------------------------------------------
     # SUB-TAB 3: BEST AREA PER CATEGORY
     # -------------------------------------------------------------
-    elif sub_tab == "3. Best Area per Category":
+    elif sub_tab == "Best Area per Category":
         _render_category_lookup(biz_df)
 
     # -------------------------------------------------------------
     # SUB-TAB 4: MULTI-ENTITY COMPARISON
     # -------------------------------------------------------------
-    elif sub_tab == "4. Multi-Entity Comparison Tool":
+    elif sub_tab == "Multi-Entity Comparison Tool":
         _render_comparison_tool(biz_df)
+
+    render_footer()
 
 def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
     """Renders the 3-step interactive advisor wizard."""
-    st.markdown('<div class="saas-panel"><div class="panel-header">🎯 Market Opportunity Wizard</div>', unsafe_allow_html=True)
-
-    # Step indicator
-    st.markdown("""
-        <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-size:13px; font-weight:600; color:#94A3B8;">
-            <span style="color:#60A5FA;">Step 1: Choose Location</span> &gt;
-            <span style="color:#60A5FA;">Step 2: Define Constraints & Sensitivity</span> &gt;
-            <span style="color:#34D399;">Step 3: Recommendation Results</span>
-        </div>
+    st.markdown(f"""
+        <div style="background:{BG_SURFACE_1}; border:1px solid {BORDER_HAIRLINE}; border-radius:4px; padding:20px; margin-bottom:24px;">
+            <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:14px; letter-spacing:-0.01em;">
+                Market Opportunity Wizard
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-size:12px; font-weight:600; color:{TEXT_MUTED}; text-transform:uppercase; letter-spacing:0.04em;">
+                <span style="color:{SILVER_PRIMARY};">Step 1: Choose Location</span> 
+                <span style="color:{BORDER_HAIRLINE};">/</span>
+                <span style="color:{SILVER_PRIMARY};">Step 2: Define Constraints & Sensitivity</span> 
+                <span style="color:{BORDER_HAIRLINE};">/</span>
+                <span style="color:{SIGNAL_RED};">Step 3: Recommendation Results</span>
+            </div>
     """, unsafe_allow_html=True)
 
     c1, c2 = st.columns([1.2, 1.8])
     with c1:
-        st.markdown("<b>Step 1: Location Filter</b>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size:12px; font-weight:600; color:{TEXT_SECONDARY}; text-transform:uppercase; margin-bottom:4px;'>Step 1: Location Filter</div>", unsafe_allow_html=True)
         available_cities = sorted([c for c in biz_df['city'].dropna().unique() if c != 'Unknown'])
         selected_city = st.selectbox("Select Target City / Area:", ["Anywhere (Global Aggregate)"] + available_cities, index=1 if available_cities else 0)
 
     with c2:
-        st.markdown("<b>Step 2: Preference & Sensitivity Constraints</b>", unsafe_allow_html=True)
+        st.markdown(f"<div style='font-size:12px; font-weight:600; color:{TEXT_SECONDARY}; text-transform:uppercase; margin-bottom:4px;'>Step 2: Preference & Sensitivity Constraints</div>", unsafe_allow_html=True)
         col_pref1, col_pref2 = st.columns(2)
         with col_pref1:
             comp_tolerance = st.selectbox("Competition Tolerance:", ["Low Crowding (Preferred)", "Medium (Balanced)", "High (Aggressive)"], index=1)
@@ -107,7 +125,7 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
             min_reviews_req = st.slider("Minimum Market Reviews:", 5, 100, 10)
 
     # Sensitivity Weight Expander
-    with st.expander("⚙️ Customize Profit Potential Index (PPI) Formula Weights"):
+    with st.expander("Customize Profit Potential Index (PPI) Formula Weights"):
         st.caption("Adjust the relative importance of each dimension. Scores recompute dynamically.")
         w_c1, w_c2, w_c3, w_c4 = st.columns(4)
         w_sat = w_c1.slider("Satisfaction Weight:", 0.1, 0.6, settings.PPI_WEIGHT_SATISFACTION, 0.05)
@@ -115,8 +133,10 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
         w_comp = w_c3.slider("Low-Competition Weight:", 0.05, 0.5, settings.PPI_WEIGHT_COMPETITION, 0.05)
         w_risk = w_c4.slider("Risk Penalty Weight:", 0.05, 0.5, settings.PPI_WEIGHT_RISK, 0.05)
 
-    st.markdown("---")
-    st.markdown("<b>Step 3: Strategic Recommendations</b>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style="border-top:1px solid {BORDER_HAIRLINE}; margin:20px 0 16px 0;"></div>
+        <div style="font-family:var(--font-serif); font-size:15px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:12px;">Step 3: Strategic Recommendations</div>
+    """, unsafe_allow_html=True)
 
     # Filter businesses for the selected area
     target_df = biz_df if selected_city == "Anywhere (Global Aggregate)" else biz_df[biz_df['city'] == selected_city]
@@ -131,7 +151,7 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
         mean_rat = group['avg_rating'].mean()
         pos_pct = group['positive_review_pct'].mean()
         neg_pct = group['negative_review_pct'].mean()
-        rat_std = group['rating_std'].mean()
+        rat_std = group['rating_std'].mean() if 'rating_std' in group.columns else 0.5
         at_risk_cnt = (group['cluster_name'] == 'Critical Intervention / At-Risk').sum()
         at_risk_share = (at_risk_cnt / biz_cnt) * 100.0 if biz_cnt > 0 else 0.0
 
@@ -177,32 +197,32 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
     for idx in range(top_n):
         row = cat_df.iloc[idx]
         with rec_cols[idx]:
-            gauge_color = "#10B981" if row['ppi'] >= 70 else "#3B82F6" if row['ppi'] >= 50 else "#EF4444"
+            gauge_color = ACCENT_GREEN if row['ppi'] >= 70 else SILVER_PRIMARY if row['ppi'] >= 50 else SIGNAL_RED
             st.markdown(f"""
-                <div style="background:rgba(30, 41, 59, 0.7); border:1px solid rgba(255,255,255,0.08); border-top: 3px solid {gauge_color}; border-radius:12px; padding:16px;">
-                    <div style="font-size:11px; color:#94A3B8; font-weight:700;">RANK #{idx+1}</div>
-                    <div style="font-size:16px; font-weight:800; color:#F8FAFC; margin-bottom:4px;">{row['category']}</div>
-                    <div style="font-size:24px; font-weight:900; color:{gauge_color};">{row['ppi']} <span style="font-size:12px; color:#94A3B8;">/ 100</span></div>
-                    <div style="font-size:11.5px; color:#60A5FA; font-weight:600; margin-bottom:8px;">{row['opp_type']}</div>
-                    <div style="font-size:11px; color:#CBD5E1;">• {row['biz_count']} competitors • {row['total_reviews']} reviews</div>
+                <div style="background:{BG_SURFACE_2}; border:1px solid {BORDER_HAIRLINE}; border-top: 2px solid {gauge_color}; border-radius:4px; padding:16px;">
+                    <div style="font-size:10px; color:{TEXT_MUTED}; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">RANK #{idx+1}</div>
+                    <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:4px;">{row['category']}</div>
+                    <div style="font-family:var(--font-mono); font-size:22px; font-weight:700; color:{gauge_color};">{row['ppi']} <span style="font-size:11px; color:{TEXT_MUTED};">/ 100</span></div>
+                    <div style="font-size:11px; color:{SILVER_PRIMARY}; font-weight:500; margin-bottom:8px;">{row['opp_type']}</div>
+                    <div style="font-size:11px; color:{TEXT_SECONDARY}; font-family:var(--font-mono);">{row['biz_count']} comps • {row['total_reviews']} revs</div>
                 </div>
             """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Detailed Category Investigation
-    st.markdown("<b>Deep-Dive Analysis for Selected Category</b>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-family:var(--font-serif); font-size:15px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:10px;'>Category Dossier & Competitor Breakdown</div>", unsafe_allow_html=True)
     sel_cat = st.selectbox("Select Category to Inspect Details & Competitors:", cat_df['category'].tolist())
     chosen_rec = cat_df[cat_df['category'] == sel_cat].iloc[0]
 
     # Detail Tabs
     d_tab1, d_tab2, d_tab3, d_tab4, d_tab5, d_tab6 = st.tabs([
-        "📊 Market Snapshot",
-        "🏢 Competitor Intelligence",
-        "💬 Customer Voice & Themes",
-        "🗺️ Area Location Map",
-        "💰 Break-even Helper",
-        "📄 Download PDF Report"
+        "Market Snapshot",
+        "Competitor Intelligence",
+        "Customer Voice & Themes",
+        "Area Location Map",
+        "Break-even Helper",
+        "Download PDF Report"
     ])
 
     with d_tab1:
@@ -210,17 +230,19 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
         ms1, ms2, ms3, ms4 = st.columns(4)
         ms1.metric("Establishments", f"{chosen_rec['biz_count']}")
         ms2.metric("Total Reviews", f"{chosen_rec['total_reviews']}")
-        ms3.metric("Avg Rating", f"{chosen_rec['avg_rating']} ⭐")
+        ms3.metric("Avg Rating", f"{chosen_rec['avg_rating']}")
         ms4.metric("Positive Feedback", f"{chosen_rec['positive_pct']}%")
 
         col_why, col_risk = st.columns(2)
         with col_why:
-            st.markdown("""<div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:14px;">
-                <b style="color:#34D399;">Strategic Why This? Signals:</b><ul style="font-size:12.5px; color:#E2E8F0; padding-left:18px;">""" +
+            st.markdown(f"""<div style="background:{BG_SURFACE_2}; border:1px solid {BORDER_HAIRLINE}; border-left:3px solid {ACCENT_GREEN}; border-radius:4px; padding:14px;">
+                <b style="color:{ACCENT_GREEN}; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">Positive Strategic Signals:</b>
+                <ul style="font-size:12.5px; color:{TEXT_SECONDARY}; padding-left:18px; margin-top:8px;">""" +
                 "".join([f"<li>{p}</li>" for p in chosen_rec['why']]) + "</ul></div>", unsafe_allow_html=True)
         with col_risk:
-            st.markdown("""<div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:14px;">
-                <b style="color:#F87171;">Potential Operational Risks:</b><ul style="font-size:12.5px; color:#E2E8F0; padding-left:18px;">""" +
+            st.markdown(f"""<div style="background:{SIGNAL_RED_SOFT}; border:1px solid {SIGNAL_RED}; border-left:3px solid {SIGNAL_RED}; border-radius:4px; padding:14px;">
+                <b style="color:{SIGNAL_RED}; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">Potential Operational Risks:</b>
+                <ul style="font-size:12.5px; color:{TEXT_PRIMARY}; padding-left:18px; margin-top:8px;">""" +
                 "".join([f"<li>{r}</li>" for r in chosen_rec['risks']]) + "</ul></div>", unsafe_allow_html=True)
 
     with d_tab2:
@@ -234,25 +256,25 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
     with d_tab3:
         st.markdown(f"#### Customer Themes & Aspect Mentions: {sel_cat}")
         cat_biz_names = target_df[target_df['place type'] == sel_cat]['place'].unique().tolist()
-        voice = extract_customer_voice(rev_df, cat_biz_names)
+        voice = extract_customer_voice(rev_df, cat_biz_names) if rev_df is not None else {'positive_keywords': [], 'negative_keywords': [], 'aspects': {}, 'quotes': []}
 
         cv1, cv2, cv3 = st.columns(3)
         with cv1:
-            st.markdown("<b>Top Positive Keywords:</b>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:11px; text-transform:uppercase; color:{TEXT_MUTED}; font-weight:700;'>Positive Keywords</div>", unsafe_allow_html=True)
             if voice['positive_keywords']:
                 for kw in voice['positive_keywords']:
-                    st.markdown(f"- <span style='color:#34D399;'>{kw}</span>", unsafe_allow_html=True)
+                    st.markdown(f"- <span style='color:{ACCENT_GREEN}; font-family:var(--font-mono); font-size:12px;'>{kw}</span>", unsafe_allow_html=True)
             else:
                 st.caption("No keywords detected.")
         with cv2:
-            st.markdown("<b>Top Friction Keywords:</b>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:11px; text-transform:uppercase; color:{TEXT_MUTED}; font-weight:700;'>Friction Keywords</div>", unsafe_allow_html=True)
             if voice['negative_keywords']:
                 for kw in voice['negative_keywords']:
-                    st.markdown(f"- <span style='color:#F87171;'>{kw}</span>", unsafe_allow_html=True)
+                    st.markdown(f"- <span style='color:{SIGNAL_RED}; font-family:var(--font-mono); font-size:12px;'>{kw}</span>", unsafe_allow_html=True)
             else:
                 st.caption("No friction keywords detected.")
         with cv3:
-            st.markdown("<b>Aspect Quality Ratings:</b>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:11px; text-transform:uppercase; color:{TEXT_MUTED}; font-weight:700;'>Aspect Ratings</div>", unsafe_allow_html=True)
             for asp, score in voice['aspects'].items():
                 if score:
                     st.write(f"• **{asp}**: {score:.1f} / 5.0")
@@ -260,12 +282,12 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
                     st.write(f"• **{asp}**: N/A")
 
         if voice['quotes']:
-            st.markdown("<b>Sample Customer Review Excerpts (Truncated & De-identified):</b>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:11px; text-transform:uppercase; color:{TEXT_MUTED}; font-weight:700; margin-top:12px;'>De-identified Review Excerpts</div>", unsafe_allow_html=True)
             for q in voice['quotes']:
-                st.markdown(f"> *\"{q['text']}\"* — Rated {q['rating']} ⭐")
+                st.markdown(f"> *\"{q['text']}\"* — Rating: {q['rating']} / 5")
 
     with d_tab4:
-        st.markdown(f"#### Map of {sel_cat} in {selected_city}")
+        st.markdown(f"#### Spatial Map: {sel_cat} in {selected_city}")
         cat_geo = target_df[(target_df['place type'] == sel_cat) & target_df['latitude'].notnull()]
         if not cat_geo.empty:
             if hasattr(px, 'scatter_map'):
@@ -306,12 +328,12 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
 
         be_res = calculate_breakeven_helper(avg_ticket, fixed_cost, margin)
         st.markdown(f"""
-            <div style="background:rgba(30, 41, 59, 0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:16px;">
-                <div style="font-size:14px; font-weight:700; color:#F8FAFC;">Estimated Break-Even Threshold:</div>
-                <div style="font-size:22px; font-weight:900; color:#60A5FA; margin-top:4px;">
-                    {be_res['monthly_customers']:,} customers/month <span style="font-size:14px; color:#94A3B8;">(~{be_res['daily_customers']} per day)</span>
+            <div style="background:{BG_SURFACE_2}; border:1px solid {BORDER_HAIRLINE}; border-radius:4px; padding:16px;">
+                <div style="font-size:12px; font-weight:600; color:{TEXT_MUTED}; text-transform:uppercase; letter-spacing:0.04em;">Estimated Break-Even Threshold:</div>
+                <div style="font-family:var(--font-mono); font-size:22px; font-weight:700; color:{TEXT_PRIMARY}; margin-top:4px;">
+                    {be_res['monthly_customers']:,} customers/month <span style="font-size:13px; color:{TEXT_MUTED};">(~{be_res['daily_customers']} per day)</span>
                 </div>
-                <div style="font-size:12px; color:#94A3B8; margin-top:4px;">
+                <div style="font-size:12px; color:{TEXT_SECONDARY}; margin-top:6px; font-family:var(--font-sans);">
                     Required Monthly Revenue: <b>${be_res['monthly_revenue']:,.2f}</b><br>
                     Review proxy demand indicator for {sel_cat} in {selected_city}: <b>{chosen_rec['total_reviews']} total sample reviews recorded</b>.
                 </div>
@@ -341,7 +363,7 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
         )
 
         st.download_button(
-            label=f"📄 Download Full PDF Report for {sel_cat} ({selected_city})",
+            label=f"Download Full PDF Report for {sel_cat} ({selected_city})",
             data=pdf_bytes,
             file_name=f"UrbanPulse_Advisory_{selected_city}_{sel_cat}.pdf".replace(" ", "_"),
             mime="application/pdf"
@@ -351,14 +373,20 @@ def _render_wizard(biz_df: pd.DataFrame, rev_df: pd.DataFrame):
 
 def _render_leaderboard(biz_df: pd.DataFrame):
     """Renders the 'Best business per area' leaderboard table."""
-    st.markdown('<div class="saas-panel"><div class="panel-header">🏆 Best Business per Area Leaderboard</div>', unsafe_allow_html=True)
-    st.caption("Ranks top recommended categories and identifies high-risk commercial types for every analyzed city.")
+    st.markdown(f"""
+        <div style="background:{BG_SURFACE_1}; border:1px solid {BORDER_HAIRLINE}; border-radius:4px; padding:20px; margin-bottom:24px;">
+            <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:4px;">
+                Municipal Opportunity Leaderboard
+            </div>
+            <div style="font-size:12px; color:{TEXT_MUTED}; margin-bottom:16px;">
+                Ranks top recommended categories and identifies high-risk commercial types for every analyzed city.
+            </div>
+    """, unsafe_allow_html=True)
 
     rows = []
     for city, group in biz_df.groupby('city'):
         if city == 'Unknown' or len(group) < 5:
             continue
-        # Rank categories by average rating and review volume
         cat_perf = group.groupby('place type').agg(
             count=('sample_review_count', 'count'),
             reviews=('sample_review_count', 'sum'),
@@ -366,7 +394,6 @@ def _render_leaderboard(biz_df: pd.DataFrame):
             neg_pct=('negative_review_pct', 'mean')
         ).reset_index()
 
-        # Score category
         cat_perf['score'] = (cat_perf['rating'] * 15.0) + (cat_perf['reviews'] * 0.5) - (cat_perf['neg_pct'] * 0.4)
         sorted_cats = cat_perf.sort_values(by='score', ascending=False)
         top3 = ", ".join(sorted_cats.head(3)['place type'].tolist())
@@ -384,12 +411,17 @@ def _render_leaderboard(biz_df: pd.DataFrame):
     st.dataframe(leader_df, use_container_width=True)
 
     csv_data = leader_df.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 Export Area Leaderboard (CSV)", data=csv_data, file_name="urbanpulse_city_leaderboard.csv", mime="text/csv")
+    st.download_button("Export Area Leaderboard (CSV)", data=csv_data, file_name="urbanpulse_city_leaderboard.csv", mime="text/csv")
     st.markdown('</div>', unsafe_allow_html=True)
 
 def _render_category_lookup(biz_df: pd.DataFrame):
     """Reverse lookup: select a category, see ranked cities."""
-    st.markdown('<div class="saas-panel"><div class="panel-header">🔎 Best Area per Business Type</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style="background:{BG_SURFACE_1}; border:1px solid {BORDER_HAIRLINE}; border-radius:4px; padding:20px; margin-bottom:24px;">
+            <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:12px;">
+                Best Area per Business Type
+            </div>
+    """, unsafe_allow_html=True)
     all_cats = sorted(biz_df['place type'].dropna().unique().tolist())
     target_cat = st.selectbox("Choose Business Category to Rank Across Cities:", all_cats)
 
@@ -407,7 +439,12 @@ def _render_category_lookup(biz_df: pd.DataFrame):
 
 def _render_comparison_tool(biz_df: pd.DataFrame):
     """Side-by-side comparison of up to 3 cities or 3 categories with radar chart."""
-    st.markdown('<div class="saas-panel"><div class="panel-header">⚖️ Multi-Entity Benchmark Comparison</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style="background:{BG_SURFACE_1}; border:1px solid {BORDER_HAIRLINE}; border-radius:4px; padding:20px; margin-bottom:24px;">
+            <div style="font-family:var(--font-serif); font-size:16px; font-weight:600; color:{TEXT_PRIMARY}; margin-bottom:12px;">
+                Multi-Entity Benchmark Comparison
+            </div>
+    """, unsafe_allow_html=True)
     comp_mode = st.radio("Comparison Mode:", ["Compare Cities / Areas", "Compare Business Categories"], horizontal=True)
 
     if comp_mode == "Compare Cities / Areas":
@@ -424,19 +461,22 @@ def _render_comparison_tool(biz_df: pd.DataFrame):
         fig_radar = go.Figure()
 
         table_rows = []
-        for ent in chosen:
+        silver_palette = [SILVER_PRIMARY, SILVER_SOFT, TEXT_MUTED]
+        for idx, ent in enumerate(chosen):
             grp = biz_df[biz_df[group_col] == ent]
             avg_r = grp['avg_rating'].mean()
             pos_p = grp['positive_review_pct'].mean()
             low_neg = max(0.0, 100.0 - grp['negative_review_pct'].mean())
             vol_proxy = min(100.0, grp['sample_review_count'].mean() * 20.0)
-            serv_rate = grp['service_feedback_rate'].mean()
+            serv_rate = grp['service_feedback_rate'].mean() if 'service_feedback_rate' in grp.columns else 0.0
 
+            color = silver_palette[idx % len(silver_palette)]
             fig_radar.add_trace(go.Scatterpolar(
                 r=[avg_r * 20.0, pos_p, low_neg, vol_proxy, min(100.0, serv_rate * 2.0)],
                 theta=radar_categories,
                 fill='toself',
-                name=ent
+                name=ent,
+                line=dict(color=color)
             ))
 
             table_rows.append({
@@ -449,10 +489,13 @@ def _render_comparison_tool(biz_df: pd.DataFrame):
             })
 
         fig_radar.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+            polar=dict(
+                radialaxis=dict(visible=True, range=[0, 100], gridcolor=BORDER_HAIRLINE, linecolor=BORDER_HAIRLINE),
+                angularaxis=dict(gridcolor=BORDER_HAIRLINE, linecolor=BORDER_HAIRLINE)
+            ),
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#94A3B8'),
+            font=dict(color=TEXT_MUTED, family="var(--font-sans)"),
             showlegend=True
         )
         st.plotly_chart(fig_radar, use_container_width=True)
@@ -460,8 +503,11 @@ def _render_comparison_tool(biz_df: pd.DataFrame):
         comp_summary = pd.DataFrame(table_rows)
         st.dataframe(comp_summary, use_container_width=True)
 
-        # Highlight Winner
         best_rating_ent = comp_summary.sort_values(by='Avg Rating', ascending=False)['Entity'].iloc[0]
-        st.success(f"🏆 Overall Quality Winner: **{best_rating_ent}** leads the peer group in customer satisfaction signals.")
+        st.markdown(f"""
+            <div style="background:{BG_SURFACE_2}; border:1px solid {BORDER_HAIRLINE}; border-left:3px solid {SILVER_PRIMARY}; border-radius:4px; padding:12px 16px; margin-top:14px; font-size:12.5px; color:{TEXT_PRIMARY};">
+                Benchmark Leader: <b>{best_rating_ent}</b> registers the highest overall satisfaction signals within this selection.
+            </div>
+        """, unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)

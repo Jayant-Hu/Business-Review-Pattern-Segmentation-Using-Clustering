@@ -1,6 +1,6 @@
 """
-Dataset Integrity & Schema Analysis Page.
-Audits raw distributions, null/zero placeholder patterns, and composite key entity resolution.
+Dataset Integrity & Schema Analysis.
+Audits completeness, missingness, and verified composite entity resolution.
 """
 import pandas as pd
 import streamlit as st
@@ -15,13 +15,14 @@ from src.ui.components import (
     render_paginated_table,
     render_section_header
 )
+from src.ui.theme import get_plotly_theme, COLOR_SILVER_SOFT
 
 def render(data_bundle):
     render_header(
-        "Dataset Architecture & Integrity Analysis",
-        "Inspection of raw schema, missing value patterns, and verified entity identification.",
-        badge="DATA AUDITING",
-        breadcrumbs=["Platform", "Analyze", "Dataset Analysis"]
+        title="Dataset Architecture & Data Integrity",
+        subtitle="Inspection of schema completeness, attribute sparsity, and verified establishment identification.",
+        eyebrow="DATA AUDITING",
+        breadcrumbs=["Platform", "Data & Segmentation", "Dataset Analysis"]
     )
 
     rev_df = data_bundle.get('rev')
@@ -29,26 +30,26 @@ def render(data_bundle):
 
     if rev_df is None or rev_df.empty:
         render_empty_state(
-            "Cleaned Dataset Not Available",
-            "Run data cleaning pipeline to generate cleaned_reviews.csv.",
-            action_command="python scripts/run_pipeline.py"
+            title="Cleaned Transaction Dataset Absent",
+            message="Please execute data cleaning pipeline to generate cleaned_reviews.csv.",
+            action_command="python scripts/run_pipeline.py --step clean"
         )
         render_footer()
         return
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        render_metric_card("Sampled Reviews", f"{len(rev_df):,}", "Uniform Stratified Sample", icon="📑")
+        render_metric_card("Sampled Review Transactions", f"{len(rev_df):,}", "Uniform Stratified Sample")
     with c2:
-        render_metric_card("Verified Businesses", f"{len(biz_df):,}" if biz_df is not None else "N/A", "place + address", icon="🏢")
+        render_metric_card("Distinct Commercial Entities", f"{len(biz_df):,}" if biz_df is not None else "N/A", "Aggregated by (place, address)")
     with c3:
-        render_metric_card("Review Attributes", f"{rev_df.shape[1]} Columns", "Sanitized & Engineered", icon="📊")
+        render_metric_card("Attribute Dimensions", f"{rev_df.shape[1]} Columns", "Engineered and validated")
 
     render_info_callout(
-        "A rigorous audit confirmed that the column 'Id' represents the Reviewer Account Identifier, not the business entity. "
-        "Aggregating by 'Id' would collapse distinct establishments across cities into single profiles. "
-        "The pipeline resolves this by engineering a deterministic composite key: MD5(place + address).",
-        title="Entity Resolution Finding",
+        title="Composite Key Resolution",
+        text="Auditing confirmed that the raw attribute 'Id' represents the Reviewer Account Identifier rather than a venue ID. "
+             "Aggregating by 'Id' directly conflates multiple distinct city storefronts visited by the same user into a single profile. "
+             "To enforce proper entity isolation, the pipeline synthesizes a deterministic primary composite key: MD5(place + address).",
         callout_type="info"
     )
 
@@ -60,34 +61,34 @@ def render(data_bundle):
         if pct > 0.05:
             placeholder_counts[col] = round(pct, 2)
 
-    placeholder_df = pd.DataFrame(list(placeholder_counts.items()), columns=['Feature', 'Missing / Placeholder %'])
-    placeholder_df = placeholder_df.sort_values(by='Missing / Placeholder %', ascending=True)
+    placeholder_df = pd.DataFrame(list(placeholder_counts.items()), columns=['Feature', 'Missing_Pct'])
+    placeholder_df = placeholder_df.sort_values(by='Missing_Pct', ascending=True)
 
     fig_missing = px.bar(
         placeholder_df,
-        x="Missing / Placeholder %",
+        x="Missing_Pct",
         y="Feature",
         orientation="h",
-        color="Missing / Placeholder %",
-        color_continuous_scale="Reds"
+        color_discrete_sequence=[COLOR_SILVER_SOFT]
     )
-    fig_missing.update_layout(coloraxis_showscale=False)
+    fig_missing.update_layout(**get_plotly_theme("dark"))
+    fig_missing.update_layout(xaxis_title="Missing / Zero Proportion (%)", yaxis_title="Dataset Attribute")
 
     render_chart_container(
-        "Proportion of Null & '0' Placeholder Values Across Features (%)",
-        fig_missing,
-        insight=f"Specific aspect ratings ({', '.join(placeholder_df.tail(3)['Feature'].tolist())}) feature the highest sparsity, requiring dedicated feedback-rate features rather than imputing missing scores.",
+        title="Attribute Sparsity & Missing Value Distribution",
+        fig=fig_missing,
+        insight=f"Aspect ratings ({', '.join(placeholder_df.tail(3)['Feature'].tolist())}) feature the highest sparsity, requiring dedicated feedback-rate features rather than arbitrary imputation.",
         help_text="Evaluates data completeness. Zeroes in specific columns like food, service, or atmosphere represent unprovided feedback rather than negative experiences."
     )
 
-    render_section_header("Review Sample Dataset Preview")
+    render_section_header("Audited Review Sample Data View")
     preview_cols = ['place', 'place type', 'rating', 'User_name', 'en review', 'city']
     avail = [c for c in preview_cols if c in rev_df.columns]
     render_paginated_table(
-        rev_df[avail],
-        key_prefix="rev_data_preview",
+        df=rev_df[avail],
+        key_prefix="rev_data_view",
         page_size=10,
-        download_filename="raw_review_sample.csv"
+        download_filename="audited_review_sample.csv"
     )
 
     render_footer()
